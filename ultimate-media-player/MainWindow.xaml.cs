@@ -56,15 +56,24 @@ namespace WpfApp1
             if (_isFullScreen)
             {
                 _isFullScreen = false;
+                this.WindowState = WindowState.Normal;
             }
             else
             {
                 _isFullScreen = true;
                 Main.Children.Remove(media);
                 this.Content = media;
-                this.WindowStyle = WindowStyle.None;
+                //this.WindowStyle = WindowStyle.None;
                 this.WindowState = WindowState.Maximized;
             }
+        }
+
+        private void Main_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            lvPlayList.Width = Main.ActualWidth;
+            slider_video.Width = Main.ActualWidth - 200;
+            double temp = (Main.ActualWidth - 440) / 2;
+            mid_controller.Margin = new Thickness( temp, 0, temp,0);
         }
     }
 }

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
         Title="MainWindow" Height="500" Width="800" MinWidth="700">
-    <DockPanel x:Name="Main">
+    <DockPanel x:Name="Main" SizeChanged="Main_SizeChanged">
         <Menu DockPanel.Dock="top">
             <MenuItem Header="_File">
                 <MenuItem Header="_New"/>
@@ -34,10 +34,10 @@
                 <MenuItem Header="_Save"/>
             </MenuItem>
         </Menu>
-        <StackPanel Orientation="Vertical" DockPanel.Dock="Bottom" HorizontalAlignment="Center" MaxWidth="1000" Margin="0,5,0,5" >
+        <StackPanel Orientation="Vertical" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0,5,0,5" Name="controller">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5" >
                 <TextBlock Text="31" Width="50" TextAlignment="Center"/>
-                <Slider MinWidth="600" MaxWidth="1000"/>
+                <Slider x:Name="slider_video" Width="600"/>
                 <TextBlock Text="123" Width="50" TextAlignment="Center"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -45,7 +45,7 @@
                     <Button FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE102;"  />
                     <Button Visibility="Collapsed" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE103;" VerticalAlignment="Center" />
                 </StackPanel>
-                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="180, 0 , 180 ,0">
+                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="180, 0 , 180 ,0" Name="mid_controller">
                     <Button FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE100;" VerticalAlignment="Center" />
                     <Button FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE71A;" VerticalAlignment="Center" />
                     <Button FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE101;" VerticalAlignment="Center" />
@@ -61,7 +61,7 @@
                 </StackPanel>
             </StackPanel>
         </StackPanel>
-        <ListView Padding="0 5" x:Name="lvPlayList" Visibility="Visible" MinWidth="800"  >
+        <ListView Padding="0 5" x:Name="lvPlayList" Visibility="Visible" >
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Title"/>
