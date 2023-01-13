@@ -23,7 +23,8 @@
                 <Separator />
                 <MenuItem Header="New Playlist..." Click="NewPlaylist_Click"/>
                 <MenuItem Header="Add Playlist..." Click="AddFileToPlaylist"/>
-                <MenuItem Header="Open Playlist..." />
+                <MenuItem Header="Open Playlist..." Click="OpenPlaylist_Click"/>
+                <MenuItem Header="Save Playlist..." Click="SavePlaylist_Click"/>
                 <Separator />
                 <MenuItem Header="Open Recent Media">
                     <MenuItem Header="123.mp3" />
@@ -143,32 +144,8 @@
             <TextBlock x:Name="NameList" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </StackPanel>
         <ListView  Name="lvPlayList" Visibility="Visible">
-            <!--<ListViewItem>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Title" Name="title_column"/>
-                    <TextBlock Text="Duration" Width="150" Name="duration_column"/>
-                    <TextBlock Text="Erase" Width="50" Name="erase_column"/>
-                </StackPanel>
-            </ListViewItem>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal" Width="200">
-                        <StackPanel.ContextMenu>
-                            <ContextMenu Name="nav">
-                                <MenuItem Header="Delete" />
-                                <MenuItem Header="Edit" />
-                            </ContextMenu>
-                        </StackPanel.ContextMenu>
-                        <TextBlock Text="{Binding Path = title}" x:Name="titleColumn"/>
-                        <TextBlock Text="{Binding Path = duration}" Width="150" />
-                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="20" Text="&#xE107;" Width="50" />
-                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="20" Text="&#xE104;" Width="50"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>-->
-            
             <ListView.View>
-                <GridView >
+                <GridView>
                     <GridView.ColumnHeaderContainerStyle>
                         <Style TargetType="{x:Type GridViewColumnHeader}">
                             <Setter Property="IsEnabled" Value="False"/>

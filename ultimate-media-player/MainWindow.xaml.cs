@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,6 +19,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using Microsoft.Win32;
+//using Newtonsoft.Json;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace WpfApp1
@@ -332,29 +334,74 @@ namespace WpfApp1
                 player.Play();
             }
         }
+        private bool isMute = true;
+        private double volumnStorage;
 
         private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             player.Volume = (double)sliderVolumn.Value;
+            if (sliderVolumn.Value == 0) { 
+                MuteBtn.Visibility = Visibility.Visible;
+                SoundBtn.Visibility = Visibility.Collapsed;
+                isMute = true;
+            }
+            else
+            {
+                MuteBtn.Visibility = Visibility.Collapsed;
+                SoundBtn.Visibility = Visibility.Visible;
+                isMute = false;
+            }
         }
 
-        bool isMute = true;
         private void Handle_volumn(object sender, RoutedEventArgs e)
         {
             if(isMute)
             {
-                sliderVolumn.Value = 1;
+                sliderVolumn.Value = volumnStorage;
                 MuteBtn.Visibility = Visibility.Collapsed;
                 SoundBtn.Visibility = Visibility.Visible;
                 isMute = false;
             }
             else
             {
+                volumnStorage = sliderVolumn.Value;
                 sliderVolumn.Value = 0;
                 MuteBtn.Visibility = Visibility.Visible;
                 SoundBtn.Visibility = Visibility.Collapsed;
                 isMute = true;
             }
+        }
+
+        private void SavePlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFile = new SaveFileDialog();
+            saveFile.DefaultExt = "json";
+            saveFile.Filter = "Playlist Files|*.json";
+            if (saveFile.ShowDialog() == true)
+            {
+                string json = JsonSerializer.Serialize(playlist);
+                File.WriteAllText(saveFile.FileName, json);
+            }
+        }
+
+        private void OpenPlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Json files (*.json) | *.json";
+            //openFileDialog.Multiselect = true;
+            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (openFileDialog.ShowDialog() == true)
+            {
+
+                using (StreamReader r = new StreamReader(openFileDialog.FileName))
+                {
+                    string json = r.ReadToEnd();
+                    playlist = JsonSerializer.Deserialize<Playlist>(json);
+                    lvPlayList.ItemsSource = playlist.list;
+                    NameList.Text=playlist.name;
+                    NamePlaylistCurrent.Visibility = Visibility.Visible;
+                }
+            }    
         }
     }
 }
