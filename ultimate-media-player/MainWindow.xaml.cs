@@ -145,7 +145,7 @@ namespace WpfApp1
         public void addDuration(string namefile )
         {
             Video video = new Video();
-            _playing = false;
+            mediaPlayerIsPlaying = false;
             video.path = namefile;
             MediaPlayer mediaDuration = new MediaPlayer();
             mediaDuration.Open(new Uri(namefile));
@@ -276,12 +276,6 @@ namespace WpfApp1
             player.Visibility = Visibility.Visible;
             player.Play();
             //player.Stop();
-
-            _timer = new DispatcherTimer();
-            _timer.Interval = new TimeSpan(0, 0, 0, 1, 0); ;
-            _timer.Tick += _timer_Tick;
-
-            _timer.Start();
         }
 
 
