@@ -22,11 +22,30 @@ namespace WpfApp1
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    /// 
+    public class Video
     {
+        public String path { get; set; } = "";
+        public String title
+        {
+            get
+            {
+                var infor = new FileInfo(path);
+                return infor.Name;
+            }
+        }
+        public String duration { get; set; } = "";
+    }
+    public partial class MainWindow : Window, INotifyPropertyChanged
+    {
+        
+
+        public BindingList<Video> videoList { get; set; }
         public MainWindow()
         {
             InitializeComponent();
+            videoList = new BindingList<Video>();
+            lvPlayList.ItemsSource = videoList;
         }
         private void ShowVideo_Click(object sender, RoutedEventArgs e)
         {
@@ -43,6 +62,8 @@ namespace WpfApp1
         }
         string _currentPlaying = "";
         bool _isFullScreen = false;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         private void Show(object sender, RoutedEventArgs e)
         {
@@ -74,30 +95,15 @@ namespace WpfApp1
                 this.WindowState = WindowState.Maximized;
             }
         }
-
+        
         private void Main_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             lvPlayList.Width = Main.ActualWidth;
             slider_video.Width = Main.ActualWidth - 200;
             double temp = (Main.ActualWidth - 440) / 2;
             mid_controller.Margin = new Thickness(temp+60, 0, temp-100, 0);
-            title_column.Width = Main.ActualWidth-200;
+            title_column.Width = Main.ActualWidth - 200;
         }
-
-        public class Video{
-            public String path { get; set; } = "";
-            public String title  {
-                get {
-                    var infor = new FileInfo(path);
-                    return infor.Name;
-                }
-            }
-            public String duration { get; set; } = "";
-
-        }
-
-        public BindingList<Video> videoList { get; set; } = new BindingList<Video>();
-
         private void AddFileToPlaylist(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -105,30 +111,44 @@ namespace WpfApp1
             openFileDialog.Multiselect = true;
             openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (openFileDialog.ShowDialog() == true)
-            {
                 foreach (string filename in openFileDialog.FileNames)
-                {
-                    Video video = new Video();
-                    video.path = filename;
-                    MediaPlayer mediaDuration = new MediaPlayer();
-                    mediaDuration.Open(new Uri(filename));
-                    while (!mediaDuration.NaturalDuration.HasTimeSpan) ;
-                    int hours = mediaDuration.NaturalDuration.TimeSpan.Hours;
-                    int minutes = mediaDuration.NaturalDuration.TimeSpan.Minutes;
-                    int seconds = mediaDuration.NaturalDuration.TimeSpan.Seconds;
-                    video.duration = $"{hours}:{minutes}:{seconds}";
-                    videoList.Add(video);
-                }
-                lvPlayList.ItemsSource = videoList;
+                    addDuration(filename);
+        }
+
+        public void addDuration(string namefile )
+        {
+            Video video = new Video();
+            video.path = namefile;
+            MediaPlayer mediaDuration = new MediaPlayer();
+            mediaDuration.Open(new Uri(namefile));
+            while (!mediaDuration.NaturalDuration.HasTimeSpan) ;
+            int hours = mediaDuration.NaturalDuration.TimeSpan.Hours;
+            int minutes = mediaDuration.NaturalDuration.TimeSpan.Minutes;
+            int seconds = mediaDuration.NaturalDuration.TimeSpan.Seconds;
+            video.duration = $"{hours}:{minutes}:{seconds}";
+            videoList.Add(video);
+        }
+
+        private void addFile_Click(object sender, RoutedEventArgs e)
+        {
+            var screen = new OpenFileDialog();
+            if (screen.ShowDialog() == true)
+            {
+                var select = screen.FileName;
+                addDuration(select);
             }
         }
 
-        private void media_MediaOpened(object sender, RoutedEventArgs e)
+        private void DeleteFile_Click(object sender, RoutedEventArgs e)
         {
-            int hours = media.NaturalDuration.TimeSpan.Hours;
-            int minutes = media.NaturalDuration.TimeSpan.Minutes;
-            int seconds = media.NaturalDuration.TimeSpan.Seconds;
-            duration.Text = $"{hours}:{minutes}:{seconds}";
+            Video t = (Video) lvPlayList.SelectedItem;
+            if (t != null)
+                videoList.Remove(t);
+        }
+
+        private void Main_Loaded(object sender, RoutedEventArgs e)
+        {
+            //videoList = new BindingList<Video>();
         }
     }
 }
