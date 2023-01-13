@@ -6,12 +6,18 @@
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
         Title="Ultimate Media Player" Height="500" Width="800" MinWidth="700" Background="Black">
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_CanExecute" Executed="Open_Executed" />
+        <CommandBinding Command="MediaCommands.Play" CanExecute="Play_CanExecute" Executed="Play_Executed" />
+        <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
+        <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
+    </Window.CommandBindings>
     <DockPanel x:Name="Main" SizeChanged="Main_SizeChanged" Loaded="Main_Loaded" Background="Black">
         <!--Top Menu-->
         <Menu DockPanel.Dock="top">
             <MenuItem Header="_File">
-                <MenuItem Header="_Open File..." Click="openFile"/>
-                <MenuItem Header="Open Multiple Files..."/>
+                <MenuItem Header="_Open File..." Command="ApplicationCommands.Open" />
+                <MenuItem Header="Open Multiple Files..." />
                 <!--<MenuItem Header="_Add" Click="addFile_Click"/>-->
                 <MenuItem Header="Open Folder..." />
                 <Separator />
@@ -27,12 +33,17 @@
                 <MenuItem Header="Exit" />
             </MenuItem>
             <MenuItem Header="_Playback">
-                <MenuItem Header="Play">
+                <MenuItem Header="Play" Command="MediaCommands.Play">
                     <MenuItem.Icon>
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE102;" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Stop">
+                <MenuItem Header="Pause" Command="MediaCommands.Pause">
+                    <MenuItem.Icon>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE103;" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Stop" Command="MediaCommands.Stop">
                     <MenuItem.Icon>
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE71A;" />
                     </MenuItem.Icon>
@@ -85,7 +96,7 @@
         <StackPanel Background="SlateGray" Orientation="Vertical" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Width="{Binding ElementName=Main, Path=ActualWidth}" Name="controller">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5" Height="30" >
                 <TextBlock x:Name="currentPosition" Text="00:00" Width="50" TextAlignment="Center" Foreground="SandyBrown" VerticalAlignment="Center" />
-                <Slider x:Name="slider_video" Width="600" VerticalAlignment="Center"/>
+                <Slider x:Name="progressSlider" ValueChanged="progressSlider_ValueChanged" Thumb.DragStarted="progressSlider_DragStarted" Thumb.DragCompleted="progressSlider_DragCompleted"  Width="600" VerticalAlignment="Center"/>
                 <TextBlock x:Name="durationLabel" VerticalAlignment="Center" Text="00:00:00" Width="50" TextAlignment="Center" Foreground="SandyBrown"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -99,11 +110,13 @@
                     <!--Repeat Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE8EE;"  VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Stop Button-->
-                    <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE71A;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button x:Name="stopButton" Command="MediaCommands.Stop" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE71A;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Previous Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE100;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
-                    <!--Play/Pause Button-->
-                    <Button x:Name="playButton" Click="playOrPause" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE102;" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <!--Play Button-->
+                    <Button x:Name="playButton" Command="MediaCommands.Play" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE102;" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <!--Play Button-->
+                    <Button x:Name="pauseButton" Command="MediaCommands.Pause" Visibility="Collapsed" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE103;" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Next Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE101;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Mute Button-->
@@ -164,7 +177,7 @@
                     <GridView.Columns>
                         <GridViewColumn Header="Title" DisplayMemberBinding="{Binding title}" x:Name="title_column"/>
                         <GridViewColumn Header="Duration" DisplayMemberBinding="{Binding duration}" Width="150" x:Name="Duration_column"/>
-                        <GridViewColumn Header="Erase" Width="50">
+                        <GridViewColumn Header="Action" Width="50">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <ToggleButton FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE107;" Click="DeleteFile_Click" />

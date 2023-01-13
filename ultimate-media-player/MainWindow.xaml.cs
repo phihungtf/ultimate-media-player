@@ -41,21 +41,27 @@ namespace WpfApp1
     }
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        
-
         public BindingList<Video> videoList { get; set; }
         public MainWindow()
         {
             InitializeComponent();
+
+            DispatcherTimer _timer;
+            _timer = new DispatcherTimer();
+            _timer.Interval = new TimeSpan(0, 0, 0, 1, 0); ;
+            _timer.Tick += _timer_Tick;
+
+            _timer.Start();
+            
             videoList = new BindingList<Video>();
             lvPlayList.ItemsSource = videoList;
         }
         
-        private static string formatTimerString(int hours, int minutes, int seconds) {
-            if (hours == 0) {
-                return $"{minutes.ToString("00")}:{seconds.ToString("00")}";
+        private static string TimeSpan2String(TimeSpan timeSpan) {
+            if (timeSpan.Hours == 0) {
+                return timeSpan.ToString(@"mm\:ss");
             }
-            return $"{hours.ToString("00")}:{minutes.ToString("00")}:{seconds.ToString("00")}";
+            return timeSpan.ToString(@"hh:\mm\:ss");
         }
         
         private void ToggleVideo(object sender, RoutedEventArgs e)
@@ -74,75 +80,22 @@ namespace WpfApp1
         
         string _currentPlaying = "";
         bool _isFullScreen = false;
-        DispatcherTimer _timer;
-        private bool _playing = false;
         private bool _isMediaOpened = false;
+        private bool mediaPlayerIsPlaying = false;
+        private bool mediaPlayerIsPausing = true;
+        private bool userIsDraggingSlider = false;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        private void openFile(object sender, RoutedEventArgs e)
-        {
-            var openMediaDialog = new OpenFileDialog();
-            openMediaDialog.FileName = "Videos"; // Default file name
-            openMediaDialog.DefaultExt = ".mp3;.mp4"; // Default file extension
-            openMediaDialog.Filter = "Media Files|*.mp3;*.mp4|Video Files|*.mp4|Audio Files|*.mp3"; // Filter files by extension
-            
-            if (openMediaDialog.ShowDialog() == true)
-            {
-                _currentPlaying = openMediaDialog.FileName;
-                player.Source = new Uri(_currentPlaying, UriKind.Absolute);
-                lvPlayList.Visibility = Visibility.Collapsed;
-                player.Visibility = Visibility.Visible;
-                
-                //Auto Play
-                _playing = true;
-                player.Play();
-                playButton.Content = "\uE103";
-
-                _timer = new DispatcherTimer();
-                _timer.Interval = new TimeSpan(0, 0, 0, 1, 0); ;
-                _timer.Tick += _timer_Tick;
-
-                _timer.Start();
-            }
-            
-        }
-
         private void _timer_Tick(object? sender, EventArgs e) {
-            int hours = player.Position.Hours;
-            int minutes = player.Position.Minutes;
-            int seconds = player.Position.Seconds;
-            currentPosition.Text = formatTimerString(hours, minutes, seconds);
-            //Title = $"{hours}:{minutes}:{seconds}";
+            if ((player.Source != null) && (player.NaturalDuration.HasTimeSpan) && (!userIsDraggingSlider)) {
+                // cập nhật value của slider
+                progressSlider.Minimum = 0;
+                progressSlider.Maximum = player.NaturalDuration.TimeSpan.TotalSeconds;
+                progressSlider.Value = player.Position.TotalSeconds;
+            }
         }
         
-        private void playOrPause(object sender, RoutedEventArgs e) {
-            if (!_isMediaOpened) return;
-            if (_playing) {
-                player.Pause();
-                _playing = false;
-                playButton.Content = "\uE102";
-                //Title = $"Stopped playing: {_shortName}";
-                _timer.Stop();
-            } else {
-                _playing = true;
-                player.Play();
-                playButton.Content = "\uE103";
-                //Title = $"Playing: {_shortName}";
-
-                _timer.Start();
-            }
-
-            //var bitmap = new BitmapImage();
-            //bitmap.BeginInit();
-            //bitmap.UriSource = new Uri(@"Images/plus.png", UriKind.Relative);
-            //bitmap.EndInit();
-
-            //browseButtonIcon.Source = bitmap;
-
-            //test.Source = bitmap;
-        }
-
         private void FullScreen(object sender, RoutedEventArgs e)
         {
             if (_isFullScreen)
@@ -163,7 +116,7 @@ namespace WpfApp1
         private void Main_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             lvPlayList.Width = Main.ActualWidth;
-            slider_video.Width = Main.ActualWidth - 200;
+            progressSlider.Width = Main.ActualWidth - 200;
             double temp = (Main.ActualWidth - 440) / 2;
             mid_controller.Margin = new Thickness(temp+60, 0, temp-100, 0);
             title_column.Width = Main.ActualWidth - 200;
@@ -187,10 +140,7 @@ namespace WpfApp1
             MediaPlayer mediaDuration = new MediaPlayer();
             mediaDuration.Open(new Uri(namefile));
             while (!mediaDuration.NaturalDuration.HasTimeSpan) ;
-            int hours = mediaDuration.NaturalDuration.TimeSpan.Hours;
-            int minutes = mediaDuration.NaturalDuration.TimeSpan.Minutes;
-            int seconds = mediaDuration.NaturalDuration.TimeSpan.Seconds;
-            video.duration = formatTimerString(hours, minutes, seconds);
+            video.duration = TimeSpan2String(mediaDuration.NaturalDuration.TimeSpan);
             videoList.Add(video);
         }
 
@@ -218,13 +168,77 @@ namespace WpfApp1
 
         private void player_MediaOpened(object sender, RoutedEventArgs e) {
             _isMediaOpened = true;
-            int hours = player.NaturalDuration.TimeSpan.Hours;
-            int minutes = player.NaturalDuration.TimeSpan.Minutes;
-            int seconds = player.NaturalDuration.TimeSpan.Seconds;
-            durationLabel.Text = formatTimerString(hours, minutes, seconds);
+            durationLabel.Text = TimeSpan2String(player.NaturalDuration.TimeSpan);
+        }
 
-            // cập nhật max value của slider
-            //progressSlider.Maximum = player.NaturalDuration.TimeSpan.TotalSeconds;
+        private void progressSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) {
+            currentPosition.Text = TimeSpan2String(TimeSpan.FromSeconds(progressSlider.Value));
+        }
+
+        private void progressSlider_DragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e) {
+            userIsDraggingSlider = true;
+        }
+
+        private void progressSlider_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e) {
+            userIsDraggingSlider = false;
+            player.Position = TimeSpan.FromSeconds(progressSlider.Value);
+        }
+
+        private void Open_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = true;
+        }
+
+        private void Open_Executed(object sender, ExecutedRoutedEventArgs e) {
+            var openMediaDialog = new OpenFileDialog();
+            openMediaDialog.FileName = "Videos"; // Default file name
+            openMediaDialog.DefaultExt = ".mp3;.mp4"; // Default file extension
+            openMediaDialog.Filter = "Media Files|*.mp3;*.mp4|Video Files|*.mp4|Audio Files|*.mp3"; // Filter files by extension
+
+            if (openMediaDialog.ShowDialog() == true) {
+                _currentPlaying = openMediaDialog.FileName;
+                player.Source = new Uri(_currentPlaying, UriKind.Absolute);
+                lvPlayList.Visibility = Visibility.Collapsed;
+                player.Visibility = Visibility.Visible;
+
+                //Auto Play
+                player.Play();
+                playButton.Visibility = Visibility.Collapsed;
+                pauseButton.Visibility = Visibility.Visible;
+                mediaPlayerIsPlaying = true;
+            }
+        }
+
+        private void Play_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = (player != null) && (player.Source != null);
+        }
+
+        private void Play_Executed(object sender, ExecutedRoutedEventArgs e) {
+            player.Play();
+            playButton.Visibility = Visibility.Collapsed;
+            pauseButton.Visibility = Visibility.Visible;
+            mediaPlayerIsPlaying = true;
+        }
+
+
+        private void Pause_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = mediaPlayerIsPlaying;
+        }
+
+        private void Pause_Executed(object sender, ExecutedRoutedEventArgs e) {
+            player.Pause();
+            playButton.Visibility = Visibility.Visible;
+            pauseButton.Visibility = Visibility.Collapsed;
+        }
+
+        private void Stop_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = mediaPlayerIsPlaying;
+        }
+
+        private void Stop_Executed(object sender, ExecutedRoutedEventArgs e) {
+            player.Stop();
+            playButton.Visibility = Visibility.Visible;
+            pauseButton.Visibility = Visibility.Collapsed;
+            mediaPlayerIsPlaying = false;
         }
     }
 }
