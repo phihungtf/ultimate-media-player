@@ -15,7 +15,8 @@
                 <!--<MenuItem Header="_Add" Click="addFile_Click"/>-->
                 <MenuItem Header="Open Folder..." />
                 <Separator />
-                <MenuItem Header="New Playlist..." />
+                <MenuItem Header="New Playlist..." Click="NewPlaylist_Click"/>
+                <MenuItem Header="Add Playlist..." Click="AddFileToPlaylist"/>
                 <MenuItem Header="Open Playlist..." />
                 <Separator />
                 <MenuItem Header="Open Recent Media">
@@ -101,11 +102,11 @@
                     <!--Stop Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE71A;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Previous Button-->
-                    <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE100;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE100;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Play/Pause Button-->
-                    <Button x:Name="playButton" Click="playOrPause" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE102;" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button x:Name="playButton" Click="playOrPause" Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="50" Content="&#xE102;" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Next Button-->
-                    <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE101;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE101;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Mute Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE74F;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Volume Slider-->
@@ -119,7 +120,14 @@
                 </StackPanel>
             </StackPanel>
         </StackPanel>
-            
+        <StackPanel DockPanel.Dock="Top" Visibility="Collapsed" Orientation="Horizontal" HorizontalAlignment="Center" Name="addPlaylist" Background="Beige" Width="{Binding ElementName=Main,Path=ActualWidth}">
+            <TextBlock Text="Name of Playlist: "/>
+            <TextBox Name="PlaylistName" Width="200"/>
+            <Button Name="PlaylistNameBtn" Content="OK" Click="PlaylistNameBtn_Click"/>
+        </StackPanel>
+        <StackPanel HorizontalAlignment="Center" DockPanel.Dock="Top" Visibility="Collapsed" Name="NamePlaylistCurrent" Background="Beige" Width="{Binding ElementName=Main,Path=ActualWidth}">
+            <TextBlock x:Name="NameList" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </StackPanel>
         <ListView  Name="lvPlayList" Visibility="Visible">
             <!--<ListViewItem>
                 <StackPanel Orientation="Horizontal">
@@ -144,9 +152,9 @@
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>-->
+            
             <ListView.View>
-                
-            <GridView>
+                <GridView >
                     <GridView.ColumnHeaderContainerStyle>
                         <Style TargetType="{x:Type GridViewColumnHeader}">
                             <Setter Property="IsEnabled" Value="False"/>
@@ -155,19 +163,24 @@
                                     <Setter Property="TextElement.Foreground" Value="Black"/>
                                     <Setter Property="Height" Value="28"/>
                                     <Setter Property="FontSize" Value="15"/>
-                                    <Setter Property="ClickMode" Value="Press"/>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
                     </GridView.ColumnHeaderContainerStyle>
-
                     <GridView.Columns>
                         <GridViewColumn Header="Title" DisplayMemberBinding="{Binding title}" x:Name="title_column"/>
-                        <GridViewColumn Header="Duration" DisplayMemberBinding="{Binding duration}" Width="150" x:Name="Duration_column"/>
+                        <GridViewColumn Header="Duration" DisplayMemberBinding="{Binding duration}" Width="100" x:Name="Duration_column"/>
                         <GridViewColumn Header="Erase" Width="50">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <ToggleButton FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE107;" Click="DeleteFile_Click" />
+                                    <Button Name="deleteBtn" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE107;" Click="DeleteFile_Click" Visibility="Visible" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Erase" Width="50">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Name="PlayBtn" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE102;" Click="PlayFile_Click" Visibility="Visible" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -175,10 +188,10 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <!--<StackPanel Orientation="Horizontal" Height="30">
+        <!--<StackPanel Orientation="Horizontal" Height="30" DockPanel.Dock="Bottom">
             <Button x:Name="addFile" Click="addFile_Click" Content="Add" Width="45" Margin=" 0,0,5,0"/>
             <Button x:Name="DeleteFile" Click="DeleteFile_Click" Content="Delete" Width="45"/>
-            </StackPanel>-->
+        </StackPanel>-->
         <MediaElement Name="player" LoadedBehavior="Manual" MediaOpened="player_MediaOpened" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
     </DockPanel>
 
