@@ -107,19 +107,19 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Name="mid_controller">
                     <!--Toggle Shuffle Button-->
-                    <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE14B;"  VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE14B;"  VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Click="shuffleMode_Click"/>
                     <!--Repeat Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE8EE;"  VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Stop Button-->
                     <Button x:Name="stopButton" Background="{x:Null}" Command="MediaCommands.Stop" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE71A;" VerticalAlignment="Center" Foreground="SandyBrown"/>
                     <!--Previous Button-->
-                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE100;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE100;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Click="prevVideo_click"/>
                     <!--Play Button-->
                     <Button x:Name="playButton" Command="MediaCommands.Play" Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE102;" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Play Button-->
                     <Button x:Name="pauseButton" Command="MediaCommands.Pause" Visibility="Collapsed" Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE103;" Foreground="SandyBrown"/>
                     <!--Next Button-->
-                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE101;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE101;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Click="NextVideo_click"/>
                     <!--Mute Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE74F;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Volume Slider-->
@@ -186,14 +186,14 @@
                         <GridViewColumn Header="Erase" Width="50">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Name="deleteBtn" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE107;" Click="DeleteFile_Click" Visibility="Visible" />
+                                    <Button Name="deleteBtn" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE107;" Click="DeleteFile_Click" Visibility="Visible"  BorderBrush="{x:Null}" Background="{x:Null}"/>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Header="Erase" Width="50">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Name="PlayBtn" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE102;" Click="PlayFile_Click" Visibility="Visible" />
+                                    <Button Name="PlayBtn" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE102;" Click="PlayFile_Click" Visibility="Visible" BorderBrush="{x:Null}" Background="{x:Null}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
@@ -201,10 +201,6 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <!--<StackPanel Orientation="Horizontal" Height="30" DockPanel.Dock="Bottom">
-            <Button x:Name="addFile" Click="addFile_Click" Content="Add" Width="45" Margin=" 0,0,5,0"/>
-            <Button x:Name="DeleteFile" Click="DeleteFile_Click" Content="Delete" Width="45"/>
-        </StackPanel>-->
         <MediaElement Name="player" LoadedBehavior="Manual" MediaOpened="player_MediaOpened" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
     </DockPanel>
 

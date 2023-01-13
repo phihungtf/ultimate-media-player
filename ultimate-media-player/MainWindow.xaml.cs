@@ -51,6 +51,7 @@ namespace WpfApp1
     {
         public BindingList<Video> videoList { get; set; }= new BindingList<Video>();
         public Playlist playlist { get; set; }= new Playlist();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -62,7 +63,7 @@ namespace WpfApp1
 
             _timer.Start();
             
-            videoList = new BindingList<Video>();
+            //videoList = new BindingList<Video>();
             lvPlayList.ItemsSource = playlist.list;
         }
         
@@ -166,7 +167,7 @@ namespace WpfApp1
 
         private void DeleteFile_Click(object sender, RoutedEventArgs e)
         {
-            Video t = (Video) lvPlayList.SelectedItem;
+            Video t = (Video)lvPlayList.SelectedItem;
             if (t != null)
                 playlist.list.Remove(t);
         }
@@ -270,15 +271,63 @@ namespace WpfApp1
             if (lvPlayList.SelectedItem == null)  return;
             Video video = (Video)lvPlayList.SelectedItem;
             _currentPlaying = video.title;
-            //mediaPlayerIsPlaying = true;
-            //_isMediaOpened = true;
+            _isMediaOpened = true;
+            mediaPlayerIsPlaying = true;
             player.Source = new Uri(video.path);
             lvPlayList.Visibility = Visibility.Collapsed;
             player.Visibility = Visibility.Visible;
             player.Play();
-            //player.Stop();
         }
 
+        private void shuffleMode_Click(object sender, RoutedEventArgs e)
+        {
+            if(playlist.list.Count()==0) return;
+            Random random = new Random();
+            int t = random.Next(0,playlist.list.Count());
+            Video video = playlist.list[t];
+            player.Source = new Uri(video.path);
+            _currentPlaying = video.title;
+            lvPlayList.Visibility = Visibility.Collapsed;
+            player.Visibility = Visibility.Visible;
+            player.Play();
+        }
 
+        private void prevVideo_click(object sender, RoutedEventArgs e)
+        {
+            int t = 0;
+            if(playlist.list.Count()<=1) return ;
+            Video video = new Video();
+            foreach (var item in playlist.list)
+                if (item.title == _currentPlaying)
+                    video = item;
+            t = playlist.list.IndexOf(video);
+            if(t>=1)
+            {   video = playlist.list[t-1];
+                player.Source = new Uri(video.path);
+                _currentPlaying=video.title;
+                lvPlayList.Visibility = Visibility.Collapsed;
+                player.Visibility = Visibility.Visible;
+                player.Play();
+            }
+        }
+        private void NextVideo_click(object sender, RoutedEventArgs e)
+        {
+            int t = 0;
+            if (playlist.list.Count() <=1) return;
+            Video video = new Video();
+            foreach (var item in playlist.list)
+                if (item.title == _currentPlaying)
+                    video = item;
+            t = playlist.list.IndexOf(video);
+            if (t < playlist.list.Count() - 1)
+            {
+                video = playlist.list[t+1];
+                player.Source = new Uri(video.path);
+                _currentPlaying = video.title;
+                lvPlayList.Visibility = Visibility.Collapsed;
+                player.Visibility = Visibility.Visible;
+                player.Play();
+            }
+        }
     }
 }
