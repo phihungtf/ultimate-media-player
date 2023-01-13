@@ -39,9 +39,18 @@ namespace WpfApp1
         }
         public String duration { get; set; } = "";
     }
+
+    public class Playlist: INotifyPropertyChanged
+    {
+        public String name { get; set; } = "";
+        public BindingList<Video> list { get; set; } = new BindingList<Video>();
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+    }
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        public BindingList<Video> videoList { get; set; }
+        public BindingList<Video> videoList { get; set; }= new BindingList<Video>();
+        public Playlist playlist { get; set; }= new Playlist();
         public MainWindow()
         {
             InitializeComponent();
@@ -125,7 +134,7 @@ namespace WpfApp1
         private void AddFileToPlaylist(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            //openFileDialog.Filter = 
+            openFileDialog.Filter = "Media Files|*.mp3;*.mp4|Video Files|*.mp4|Audio Files|*.mp3";
             openFileDialog.Multiselect = true;
             openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (openFileDialog.ShowDialog() == true)
@@ -136,6 +145,7 @@ namespace WpfApp1
         public void addDuration(string namefile )
         {
             Video video = new Video();
+            _playing = false;
             video.path = namefile;
             MediaPlayer mediaDuration = new MediaPlayer();
             mediaDuration.Open(new Uri(namefile));
@@ -158,7 +168,7 @@ namespace WpfApp1
         {
             Video t = (Video) lvPlayList.SelectedItem;
             if (t != null)
-                videoList.Remove(t);
+                playlist.list.Remove(t);
         }
 
         private void Main_Loaded(object sender, RoutedEventArgs e)
@@ -240,5 +250,40 @@ namespace WpfApp1
             pauseButton.Visibility = Visibility.Collapsed;
             mediaPlayerIsPlaying = false;
         }
+
+        private void PlaylistNameBtn_Click(object sender, RoutedEventArgs e)
+        {
+            playlist.name = PlaylistName.Text;
+            addPlaylist.Visibility = Visibility.Collapsed;
+            Main.Children.Remove(addPlaylist);
+            NameList.Text = PlaylistName.Text;
+            NamePlaylistCurrent.Visibility = Visibility.Visible;
+        }
+
+        private void NewPlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            addPlaylist.Visibility = Visibility.Visible;
+        }
+
+        private void PlayFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (lvPlayList.SelectedItem == null)  return;
+            Video video = (Video)lvPlayList.SelectedItem;
+            _currentPlaying = video.title;
+            _isMediaOpened = true;
+            player.Source = new Uri(video.path);
+            lvPlayList.Visibility = Visibility.Collapsed;
+            player.Visibility = Visibility.Visible;
+            player.Play();
+            //player.Stop();
+
+            _timer = new DispatcherTimer();
+            _timer.Interval = new TimeSpan(0, 0, 0, 1, 0); ;
+            _timer.Tick += _timer_Tick;
+
+            _timer.Start();
+        }
+
+
     }
 }
