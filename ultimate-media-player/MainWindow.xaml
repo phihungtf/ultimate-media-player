@@ -111,13 +111,13 @@
                     <!--Repeat Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE8EE;"  VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Stop Button-->
-                    <Button x:Name="stopButton" Command="MediaCommands.Stop" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE71A;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button x:Name="stopButton" Background="{x:Null}" Command="MediaCommands.Stop" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE71A;" VerticalAlignment="Center" Foreground="SandyBrown"/>
                     <!--Previous Button-->
-                    <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE100;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE100;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Play Button-->
-                    <Button x:Name="playButton" Command="MediaCommands.Play" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE102;" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button x:Name="playButton" Command="MediaCommands.Play" Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE102;" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Play Button-->
-                    <Button x:Name="pauseButton" Command="MediaCommands.Pause" Visibility="Collapsed" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE103;" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button x:Name="pauseButton" Command="MediaCommands.Pause" Visibility="Collapsed" Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE103;" Foreground="SandyBrown"/>
                     <!--Next Button-->
                     <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE101;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--Mute Button-->

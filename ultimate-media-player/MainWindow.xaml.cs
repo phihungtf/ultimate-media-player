@@ -63,14 +63,14 @@ namespace WpfApp1
             _timer.Start();
             
             videoList = new BindingList<Video>();
-            lvPlayList.ItemsSource = videoList;
+            lvPlayList.ItemsSource = playlist.list;
         }
         
         private static string TimeSpan2String(TimeSpan timeSpan) {
             if (timeSpan.Hours == 0) {
                 return timeSpan.ToString(@"mm\:ss");
             }
-            return timeSpan.ToString(@"hh:\mm\:ss");
+            return timeSpan.ToString(@"hh\:mm\:ss");
         }
         
         private void ToggleVideo(object sender, RoutedEventArgs e)
@@ -151,7 +151,7 @@ namespace WpfApp1
             mediaDuration.Open(new Uri(namefile));
             while (!mediaDuration.NaturalDuration.HasTimeSpan) ;
             video.duration = TimeSpan2String(mediaDuration.NaturalDuration.TimeSpan);
-            videoList.Add(video);
+            playlist.list.Add(video);
         }
 
         private void addFile_Click(object sender, RoutedEventArgs e)
@@ -270,7 +270,8 @@ namespace WpfApp1
             if (lvPlayList.SelectedItem == null)  return;
             Video video = (Video)lvPlayList.SelectedItem;
             _currentPlaying = video.title;
-            _isMediaOpened = true;
+            //mediaPlayerIsPlaying = true;
+            //_isMediaOpened = true;
             player.Source = new Uri(video.path);
             lvPlayList.Visibility = Visibility.Collapsed;
             player.Visibility = Visibility.Visible;
