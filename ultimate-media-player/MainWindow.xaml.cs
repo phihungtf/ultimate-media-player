@@ -58,7 +58,7 @@ namespace WpfApp1
             return $"{hours.ToString("00")}:{minutes.ToString("00")}:{seconds.ToString("00")}";
         }
         
-        private void ShowVideo_Click(object sender, RoutedEventArgs e)
+        private void ToggleVideo(object sender, RoutedEventArgs e)
         {
             if (lvPlayList.Visibility == Visibility.Visible)
             {
