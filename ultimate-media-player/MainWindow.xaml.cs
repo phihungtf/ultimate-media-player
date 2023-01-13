@@ -120,7 +120,6 @@ namespace WpfApp1
                 _isFullScreen = true;
                 Main.Children.Remove(player);
                 this.Content = player;
-                //this.WindowStyle = WindowStyle.None;  // Nhớ bỏ cmt
                 this.WindowState = WindowState.Maximized;
             }
         }
@@ -172,11 +171,6 @@ namespace WpfApp1
             Video t = (Video)lvPlayList.SelectedItem;
             if (t != null)
                 playlist.list.Remove(t);
-        }
-
-        private void Main_Loaded(object sender, RoutedEventArgs e)
-        {
-            //videoList = new BindingList<Video>();
         }
 
         private void player_MediaOpened(object sender, RoutedEventArgs e) {
@@ -277,11 +271,11 @@ namespace WpfApp1
             Video video = (Video)lvPlayList.SelectedItem;
             _currentPlaying = video.title;
             _isMediaOpened = true;
-            mediaPlayerIsPlaying = true;
             player.Source = new Uri(video.path);
             lvPlayList.Visibility = Visibility.Collapsed;
             player.Visibility = Visibility.Visible;
             player.Play();
+            mediaPlayerIsPlaying = true;
         }
 
         private void shuffleMode_Click(object sender, RoutedEventArgs e)
