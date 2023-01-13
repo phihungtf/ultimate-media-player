@@ -86,21 +86,26 @@ namespace WpfApp1
             openMediaDialog.FileName = "Videos"; // Default file name
             openMediaDialog.DefaultExt = ".mp3;.mp4"; // Default file extension
             openMediaDialog.Filter = "Media Files|*.mp3;*.mp4|Video Files|*.mp4|Audio Files|*.mp3"; // Filter files by extension
+            
             if (openMediaDialog.ShowDialog() == true)
             {
                 _currentPlaying = openMediaDialog.FileName;
                 player.Source = new Uri(_currentPlaying, UriKind.Absolute);
                 lvPlayList.Visibility = Visibility.Collapsed;
                 player.Visibility = Visibility.Visible;
+                
+                //Auto Play
+                _playing = true;
                 player.Play();
-                player.Stop();
+                playButton.Content = "\uE103";
 
                 _timer = new DispatcherTimer();
                 _timer.Interval = new TimeSpan(0, 0, 0, 1, 0); ;
                 _timer.Tick += _timer_Tick;
 
-                playOrPause(null, null);
+                _timer.Start();
             }
+            
         }
 
         private void _timer_Tick(object? sender, EventArgs e) {
@@ -111,7 +116,7 @@ namespace WpfApp1
             //Title = $"{hours}:{minutes}:{seconds}";
         }
         
-        private void playOrPause(object? sender, RoutedEventArgs? e) {
+        private void playOrPause(object sender, RoutedEventArgs e) {
             if (!_isMediaOpened) return;
             if (_playing) {
                 player.Pause();
