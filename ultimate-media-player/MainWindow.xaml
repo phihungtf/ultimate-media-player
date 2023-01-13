@@ -5,47 +5,90 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="800" MinWidth="700">
-    <DockPanel x:Name="Main" SizeChanged="Main_SizeChanged" Loaded="Main_Loaded">
+        Title="Ultimate Media Player" Height="500" Width="800" MinWidth="700" Background="Black">
+    <DockPanel x:Name="Main" SizeChanged="Main_SizeChanged" Loaded="Main_Loaded" Background="Black">
         <Menu DockPanel.Dock="top">
             <MenuItem Header="_File">
-                <MenuItem Header="_New"/>
-                <MenuItem Header="_Open" Click="Show"/>
-                <MenuItem Header="_Add" Click="addFile_Click"/>
-                <MenuItem Header="_Save"/>
+                <MenuItem Header="_Open File..." Click="openFile"/>
+                <MenuItem Header="Open Multiple Files..."/>
+                <!--<MenuItem Header="_Add" Click="addFile_Click"/>-->
+                <MenuItem Header="Open Folder..." />
+                <Separator />
+                <MenuItem Header="New Playlist..." />
+                <MenuItem Header="Open Playlist..." />
+                <Separator />
+                <MenuItem Header="Open Recent Media">
+                    <MenuItem Header="123.mp3" />
+                    <MenuItem Header="abc.mp4" />
+                    <Separator />
+                    <MenuItem Header="Clear" />
+                </MenuItem>
+                <MenuItem Header="Exit" />
             </MenuItem>
-            <MenuItem Header="_Playlist">
-                <MenuItem Header="_New"/>
-                <MenuItem Header="_Open"/>
-                <MenuItem Header="_Add" Click="AddFileToPlaylist"/>
-                <MenuItem Header="_Save"/>
+            <MenuItem Header="_Playback">
+                <MenuItem Header="Play">
+                    <MenuItem.Icon>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE102;" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Stop">
+                    <MenuItem.Icon>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE71A;" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <!--<MenuItem Header="_Add" Click="AddFileToPlaylist"/>-->
+                <MenuItem Header="Previous">
+                    <MenuItem.Icon>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE100;" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Next">
+                    <MenuItem.Icon>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE101;" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Audio">
-                <MenuItem Header="_New"/>
-                <MenuItem Header="_Open"/>
-                <MenuItem Header="_Save"/>
+                <MenuItem Header="Increase Volume">
+                    <MenuItem.Icon>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE109;" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Decrease Volume">
+                    <MenuItem.Icon>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE108;" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Mute">
+                    <MenuItem.Icon>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE74F;" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Video">
-                <MenuItem Header="_New"/>
-                <MenuItem Header="_Open"/>
-                <MenuItem Header="_Save"/>
+                <MenuItem Header="Full screen">
+                    <MenuItem.Icon>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE740;" />
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="_New"/>
-                <MenuItem Header="_Open"/>
-                <MenuItem Header="_Save"/>
+                <MenuItem Header="Help"/>
+                <MenuItem Header="Check for Updates..."/>
+                <Separator />
+                <MenuItem Header="About"/>
             </MenuItem>
         </Menu>
         <StackPanel Background="SlateGray" Orientation="Vertical" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Width="{Binding ElementName=Main, Path=ActualWidth}" Name="controller">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5" Height="30" >
-                <TextBlock Text="31" Width="50" TextAlignment="Center" Foreground="SandyBrown" VerticalAlignment="Center" />
+                <TextBlock x:Name="currentPosition" Text="00:00" Width="50" TextAlignment="Center" Foreground="SandyBrown" VerticalAlignment="Center" />
                 <Slider x:Name="slider_video" Width="600" VerticalAlignment="Center"/>
-                <TextBlock d:Text="00:00:00" VerticalAlignment="Center" Text="00:00:00" Width="50" TextAlignment="Center" Name="duration" Foreground="SandyBrown"/>
+                <TextBlock x:Name="durationLabel" VerticalAlignment="Center" Text="00:00:00" Width="50" TextAlignment="Center" Foreground="SandyBrown"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <StackPanel Orientation="Horizontal">
-                    <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE102;" Background="{x:Null}" Foreground="SandyBrown"/>
-                    <Button Padding="5" BorderBrush="{x:Null}" Visibility="Collapsed" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE103;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button x:Name="playButton" Click="playOrPause" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE102;" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <!--<Button Padding="5" BorderBrush="{x:Null}" Visibility="Collapsed" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE103;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>-->
                 </StackPanel>
                 <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Name="mid_controller">
                     <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE100;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
@@ -123,7 +166,7 @@
             <Button x:Name="addFile" Click="addFile_Click" Content="Add" Width="45" Margin=" 0,0,5,0"/>
             <Button x:Name="DeleteFile" Click="DeleteFile_Click" Content="Delete" Width="45"/>
             </StackPanel>-->
-        <MediaElement Name="media" LoadedBehavior="Manual" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <MediaElement Name="player" LoadedBehavior="Manual" MediaOpened="player_MediaOpened" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
     </DockPanel>
 
 </Window>
