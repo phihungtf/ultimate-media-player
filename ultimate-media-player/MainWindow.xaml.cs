@@ -128,7 +128,7 @@ namespace WpfApp1
             lvPlayList.Width = Main.ActualWidth;
             progressSlider.Width = Main.ActualWidth - 200;
             double temp = (Main.ActualWidth - 440) / 2;
-            mid_controller.Margin = new Thickness(temp+60, 0, temp-100, 0);
+            mid_controller.Margin = new Thickness(temp-20, 0, temp-100, 0);
             title_column.Width = Main.ActualWidth - 200;
         }
         
@@ -183,7 +183,10 @@ namespace WpfApp1
         }
 
         private void progressSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) {
-            currentPosition.Text = TimeSpan2String(TimeSpan.FromSeconds(progressSlider.Value));
+            double value = progressSlider.Value;
+            TimeSpan newPosition = TimeSpan.FromSeconds(value);
+            currentPosition.Text = TimeSpan2String(newPosition);
+            player.Position = newPosition;
         }
 
         private void progressSlider_DragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e) {
@@ -327,6 +330,30 @@ namespace WpfApp1
                 lvPlayList.Visibility = Visibility.Collapsed;
                 player.Visibility = Visibility.Visible;
                 player.Play();
+            }
+        }
+
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            player.Volume = (double)sliderVolumn.Value;
+        }
+
+        bool isMute = true;
+        private void Handle_volumn(object sender, RoutedEventArgs e)
+        {
+            if(isMute)
+            {
+                sliderVolumn.Value = 1;
+                MuteBtn.Visibility = Visibility.Collapsed;
+                SoundBtn.Visibility = Visibility.Visible;
+                isMute = false;
+            }
+            else
+            {
+                sliderVolumn.Value = 0;
+                MuteBtn.Visibility = Visibility.Visible;
+                SoundBtn.Visibility = Visibility.Collapsed;
+                isMute = true;
             }
         }
     }

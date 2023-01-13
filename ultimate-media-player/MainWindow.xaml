@@ -121,9 +121,10 @@
                     <!--Next Button-->
                     <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE101;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Click="NextVideo_click"/>
                     <!--Mute Button-->
-                    <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE74F;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <Button Padding="5" Name="MuteBtn" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE74F;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Click="Handle_volumn"/>
+                    <Button Padding="5" Name="SoundBtn" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE15D;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Click="Handle_volumn" Visibility="Collapsed"/>
                     <!--Volume Slider-->
-                    <Slider Padding="5" Width="100" BorderBrush="{x:Null}" VerticalAlignment="Center" Foreground="SandyBrown"/>
+                    <Slider Padding="5" Width="100" Minimum="0" Maximum="1" BorderBrush="{x:Null}" VerticalAlignment="Center" Foreground="SandyBrown" ValueChanged="Slider_ValueChanged" x:Name="sliderVolumn"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <!--Full screen Button-->
@@ -201,7 +202,7 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <MediaElement Name="player" LoadedBehavior="Manual" MediaOpened="player_MediaOpened" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <MediaElement Volume="0" Name="player" LoadedBehavior="Manual" MediaOpened="player_MediaOpened" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
     </DockPanel>
 
 </Window>
