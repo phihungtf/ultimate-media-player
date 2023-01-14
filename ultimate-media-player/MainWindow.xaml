@@ -9,25 +9,28 @@
         Title="Ultimate Media Player" Height="500" Width="800" Loaded="Main_Loaded" MinWidth="700" Background="Black">
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_CanExecute" Executed="Open_Executed" />
+        <CommandBinding Command="local:CustomCommands.NewPlaylist" CanExecute="NewPlaylist_CanExecute" Executed="NewPlaylist_Executed" />
+        <CommandBinding Command="local:CustomCommands.OpenPlaylist" CanExecute="OpenPlaylist_CanExecute" Executed="OpenPlaylist_Executed" />
+        <CommandBinding Command="local:CustomCommands.AddToPlaylist" CanExecute="AddToPlaylist_CanExecute" Executed="AddToPlaylist_Executed" />
+        <CommandBinding Command="local:CustomCommands.SavePlaylist" CanExecute="SavePlaylist_CanExecute" Executed="SavePlaylist_Executed" />
         <CommandBinding Command="local:CustomCommands.Play" CanExecute="Play_CanExecute" Executed="Play_Executed" />
         <CommandBinding Command="local:CustomCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
         <CommandBinding Command="local:CustomCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
+        <CommandBinding Command="local:CustomCommands.Next" CanExecute="Next_CanExecute" Executed="Next_Executed" />
+        <CommandBinding Command="local:CustomCommands.Previous" CanExecute="Previous_CanExecute" Executed="Previous_Executed" />
         <CommandBinding Command="local:CustomCommands.MuteVolume" CanExecute="MuteVolume_CanExecute" Executed="MuteVolume_Executed" />
         <CommandBinding Command="local:CustomCommands.FullScreen" CanExecute="FullScreen_CanExecute" Executed="FullScreen_Executed" />
     </Window.CommandBindings>
-    <DockPanel x:Name="Main" SizeChanged="Main_SizeChanged" Loaded="Main_Loaded" Background="Black">
+    <DockPanel x:Name="Main" SizeChanged="Main_SizeChanged" Loaded="Main_Loaded" Background="#FF100F0F">
         <!--Top Menu-->
         <Menu DockPanel.Dock="top" x:Name="menu">
             <MenuItem Header="_File">
                 <MenuItem Header="_Open File..." Command="ApplicationCommands.Open" />
-                <MenuItem Header="Open Multiple Files..." />
-                <!--<MenuItem Header="_Add" Click="addFile_Click"/>-->
-                <MenuItem Header="Open Folder..." />
                 <Separator />
-                <MenuItem Header="New Playlist..." Click="NewPlaylist_Click"/>
-                <MenuItem Header="Add File to Playlist..." Click="AddFileToPlaylist"/>
-                <MenuItem Header="Open Playlist..." Click="OpenPlaylist_Click"/>
-                <MenuItem Header="Save Playlist..." Click="SavePlaylist_Click"/>
+                <MenuItem Header="New Playlist..." Command="local:CustomCommands.NewPlaylist"/>
+                <MenuItem Header="Open Playlist..." Command="local:CustomCommands.OpenPlaylist"/>
+                <MenuItem Header="Add File(s) to Playlist..." Command="local:CustomCommands.AddToPlaylist"/>
+                <MenuItem Header="Save Playlist..." Command="local:CustomCommands.SavePlaylist"/>
                 <Separator />
                 <MenuItem Header="Open Recent Media" Name="menulist" >
                     <ListView x:Name="lvMenuitem">
@@ -58,15 +61,14 @@
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE71A;" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <!--<MenuItem Header="_Add" Click="AddFileToPlaylist"/>-->
-                <MenuItem Header="Previous">
-                    <MenuItem.Icon>
-                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE100;" />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Header="Next">
+                <MenuItem Header="Next" Command="local:CustomCommands.Next">
                     <MenuItem.Icon>
                         <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE101;" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Previous" Command="local:CustomCommands.Previous">
+                    <MenuItem.Icon>
+                        <TextBlock FontFamily="Segoe MDL2 Assets" FontSize="16" Text="&#xE100;" />
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
@@ -103,18 +105,19 @@
         </Menu>
 
         <!--Bottom Controls-->
-        <StackPanel Background="SlateGray" Orientation="Vertical" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Width="{Binding ElementName=Main, Path=ActualWidth}" Name="controller">
+        <StackPanel Orientation="Vertical" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Width="{Binding ElementName=Main, Path=ActualWidth}" Name="controller">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5" Height="30" >
                 <TextBlock x:Name="currentPosition" Text="00:00" Width="50" TextAlignment="Center" Foreground="SandyBrown" VerticalAlignment="Center" />
                 <Slider x:Name="progressSlider" ValueChanged="progressSlider_ValueChanged" Thumb.DragStarted="progressSlider_DragStarted" Thumb.DragCompleted="progressSlider_DragCompleted"  Width="600" VerticalAlignment="Center"/>
                 <TextBlock x:Name="durationLabel" VerticalAlignment="Center" Text="00:00:00" Width="50" TextAlignment="Center" Foreground="SandyBrown"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <StackPanel Orientation="Horizontal">
+            <Grid HorizontalAlignment="Center" Name="btns">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <!--Toggle Video/Playlist Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" x:Name="ToggleVideoBtn" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE8FD;"  VerticalAlignment="Center" Click="ToggleVideo" Background="{x:Null}" Foreground="SandyBrown"/>
+                    <TextBlock x:Name="mediaName" Text="No Media" Foreground="SandyBrown" VerticalAlignment="Center" Margin="5,0,0,0"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Name="mid_controller">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Name="mid_controller">
                     <!--Toggle Shuffle Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE14B;"  VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Click="shuffleMode_Click"/>
                     <!--Repeat Button-->
@@ -122,31 +125,26 @@
                     <!--Stop Button-->
                     <Button x:Name="stopButton" Background="Transparent" Command="local:CustomCommands.Stop" Padding="5" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE71A;" VerticalAlignment="Center" Foreground="SandyBrown"/>
                     <!--Previous Button-->
-                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE100;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Click="prevVideo_click"/>
+                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE100;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Command="local:CustomCommands.Previous"/>
                     <!--Play Button-->
                     <Button x:Name="playButton" Command="local:CustomCommands.Play" Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE102;" Background="Transparent" Foreground="SandyBrown"/>
                     <!--Pause Button-->
                     <Button x:Name="pauseButton" Command="local:CustomCommands.Pause" Visibility="Collapsed" Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="40" Content="&#xE103;" Foreground="SandyBrown"/>
                     <!--Next Button-->
-                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE101;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Click="NextVideo_click"/>
+                    <Button Padding="5" BorderBrush="SandyBrown" FontFamily="Segoe MDL2 Assets" FontSize="30" Content="&#xE101;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Command="local:CustomCommands.Next"/>
                     <!--Mute Button-->
                     <Button Padding="5" Name="MuteBtn" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE74F;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Command="local:CustomCommands.MuteVolume" />
                     <Button Padding="5" Name="SoundBtn" BorderBrush="{x:Null}" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE15D;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown" Command="local:CustomCommands.MuteVolume" Visibility="Collapsed"/>
                     <!--Volume Slider-->
                     <Slider Padding="5" Width="100" Minimum="0" Maximum="1" BorderBrush="{x:Null}" VerticalAlignment="Center" Foreground="SandyBrown" ValueChanged="Slider_ValueChanged" x:Name="sliderVolumn"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal"  HorizontalAlignment="Right">
                     <!--Full screen Button-->
                     <Button Padding="5" BorderBrush="{x:Null}" Command="local:CustomCommands.FullScreen" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE740;"  VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>
                     <!--<Button Padding="5" BorderBrush="{x:Null}" Visibility="Collapsed" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE8ED;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>-->
                     <!--<Button Padding="5" BorderBrush="{x:Null}" Visibility="Collapsed" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE13C;" VerticalAlignment="Center" Background="{x:Null}" Foreground="SandyBrown"/>-->
                 </StackPanel>
-            </StackPanel>
-        </StackPanel>
-        <StackPanel DockPanel.Dock="Top" Visibility="Collapsed" Orientation="Horizontal" HorizontalAlignment="Center" Name="addPlaylist" Background="Beige" Width="{Binding ElementName=Main,Path=ActualWidth}">
-            <TextBlock Text="Name of Playlist: "/>
-            <TextBox Name="PlaylistName" Width="200"/>
-            <Button Name="PlaylistNameBtn" Content="OK" Click="PlaylistNameBtn_Click"/>
+            </Grid>
         </StackPanel>
         <StackPanel HorizontalAlignment="Center" DockPanel.Dock="Top" Visibility="Collapsed" Name="NamePlaylistCurrent" Background="Beige" Width="{Binding ElementName=Main,Path=ActualWidth}">
             <TextBlock x:Name="NameList" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"/>
@@ -169,17 +167,17 @@
                     <GridView.Columns>
                         <GridViewColumn Header="Title" DisplayMemberBinding="{Binding title}" x:Name="title_column"/>
                         <GridViewColumn Header="Duration" DisplayMemberBinding="{Binding duration}" Width="100" x:Name="Duration_column"/>
-                        <GridViewColumn Header="Erase" Width="50">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Name="deleteBtn" FontFamily="Segoe MDL2 Assets" FontSize="24" Content="&#xE107;" Click="DeleteFile_Click"  BorderBrush="{x:Null}" Background="{x:Null}"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="Erase" Width="50">
+                        <GridViewColumn Header="Play" Width="50">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Button Name="PlayBtn" FontFamily="Segoe MDL2 Assets" FontSize="20" Content="&#xE102;" Click="PlayFile_Click" BorderBrush="{x:Null}" Background="{x:Null}" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Delete" Width="50">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Name="deleteBtn" FontFamily="Segoe MDL2 Assets" FontSize="24" Content="&#xE107;" Click="DeleteFile_Click"  BorderBrush="{x:Null}" Background="{x:Null}"/>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -18,8 +19,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Xml.Linq;
 using Microsoft.VisualBasic;
 using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
+using Microsoft.WindowsAPICodePack.Shell;
 //using Newtonsoft.Json;
 
 namespace WpfApp1
@@ -63,9 +67,10 @@ namespace WpfApp1
 
         public event PropertyChangedEventHandler? PropertyChanged;
     }
+
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        public Playlist playlist { get; set; }= new Playlist();
+        public Playlist playlist { get; set; } = new Playlist();
         public Status status { get; set; } = new Status();
 
         public MainWindow()
@@ -79,7 +84,6 @@ namespace WpfApp1
 
             _timer.Start();
             
-            //videoList = new BindingList<Video>();
             lvPlayList.ItemsSource = playlist.list;
         }
         
@@ -89,8 +93,16 @@ namespace WpfApp1
             }
             return timeSpan.ToString(@"hh\:mm\:ss");
         }
-        
-        private void ToggleVideo(object? sender, RoutedEventArgs? e)
+
+        private static TimeSpan GetVideoDuration(string filePath) {
+            using (var shell = ShellObject.FromParsingName(filePath)) {
+                IShellProperty prop = shell.Properties.System.Media.Duration;
+                var t = (ulong)prop.ValueAsObject;
+                return TimeSpan.FromTicks((long)t);
+            }
+        }
+
+        private void ToggleVideo(object sender, RoutedEventArgs e)
         {
             if (lvPlayList.Visibility == Visibility.Visible)
             {
@@ -127,32 +139,19 @@ namespace WpfApp1
         {
             lvPlayList.Width = Main.ActualWidth;
             progressSlider.Width = Main.ActualWidth - 200;
-            double temp = (Main.ActualWidth - 440) / 2;
-            mid_controller.Margin = new Thickness(temp-20, 0, temp-100, 0);
-            title_column.Width = Main.ActualWidth - 200;
+            //double temp = (Main.ActualWidth - 440) / 2;
+            //mid_controller.Margin = new Thickness(temp-20, 0, temp-100, 0);
+            title_column.Width = Main.ActualWidth - 210;
+            btns.Width = Main.ActualWidth - 50;
             //lvMenuitem.Width = menulist.ActualWidth;
         }
-        
-        private void AddFileToPlaylist(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Media Files|*.mp3;*.mp4|Video Files|*.mp4|Audio Files|*.mp3";
-            openFileDialog.Multiselect = true;
-            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            if (openFileDialog.ShowDialog() == true)
-                foreach (string filename in openFileDialog.FileNames)
-                    addDuration(filename);
-        }
 
-        public void addDuration(string namefile )
+        public void addToPlaylist(string namefile)
         {
             Video video = new Video();
-            mediaPlayerIsPlaying = false;
             video.path = namefile;
-            MediaPlayer mediaDuration = new MediaPlayer();
-            mediaDuration.Open(new Uri(namefile));
-            while (!mediaDuration.NaturalDuration.HasTimeSpan) ;
-            video.duration = TimeSpan2String(mediaDuration.NaturalDuration.TimeSpan);
+            var duration = GetVideoDuration(namefile);
+            video.duration = TimeSpan2String(duration);
             playlist.list.Add(video);
         }
 
@@ -162,7 +161,7 @@ namespace WpfApp1
             if (screen.ShowDialog() == true)
             {
                 var select = screen.FileName;
-                addDuration(select);
+                addToPlaylist(select);
             }
         }
 
@@ -206,7 +205,6 @@ namespace WpfApp1
 
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e) {
             var openMediaDialog = new OpenFileDialog();
-            openMediaDialog.FileName = "Videos"; // Default file name
             openMediaDialog.DefaultExt = ".mp3;.mp4"; // Default file extension
             openMediaDialog.Filter = "Media Files|*.mp3;*.mp4|Video Files|*.mp4|Audio Files|*.mp3"; // Filter files by extension
 
@@ -222,6 +220,7 @@ namespace WpfApp1
                 player.Play();
                 playButton.Visibility = Visibility.Collapsed;
                 pauseButton.Visibility = Visibility.Visible;
+                mediaName.Text = video.title.Length <= 30 ? video.title : (video.title.Substring(0, 30) + "...");
                 mediaPlayerIsPlaying = true;
             }
         }
@@ -261,20 +260,6 @@ namespace WpfApp1
             mediaPlayerIsPlaying = false;
         }
 
-        private void PlaylistNameBtn_Click(object sender, RoutedEventArgs e)
-        {
-            playlist.name = PlaylistName.Text;
-            addPlaylist.Visibility = Visibility.Collapsed;
-            Main.Children.Remove(addPlaylist);
-            NameList.Text = PlaylistName.Text;
-            NamePlaylistCurrent.Visibility = Visibility.Visible;
-        }
-
-        private void NewPlaylist_Click(object sender, RoutedEventArgs e)
-        {
-            addPlaylist.Visibility = Visibility.Visible;
-        }
-
         private void PlayFile_Click(object sender, RoutedEventArgs e)
         {
             if (lvPlayList.SelectedItem == null)  return;
@@ -286,7 +271,11 @@ namespace WpfApp1
             lvPlayList.Visibility = Visibility.Collapsed;
             player.Visibility = Visibility.Visible;
             player.Play();
+            mediaName.Text = playlist.name + "/" + video.title;
+            playButton.Visibility = Visibility.Collapsed;
+            pauseButton.Visibility = Visibility.Visible;
             mediaPlayerIsPlaying = true;
+            mediaPlayerIsPausing = false;
         }
 
         private void shuffleMode_Click(object sender, RoutedEventArgs e)
@@ -302,46 +291,7 @@ namespace WpfApp1
             player.Visibility = Visibility.Visible;
             player.Play();
         }
-
-        private void prevVideo_click(object sender, RoutedEventArgs e)
-        {
-            int t = 0;
-            if(playlist.list.Count()<=1) return ;
-            Video video = new Video();
-            foreach (var item in playlist.list)
-                if (item.path == _currentPlaying)
-                    video = item;
-            t = playlist.list.IndexOf(video);
-            if(t>=1)
-            {   video = playlist.list[t-1];
-                player.Source = new Uri(video.path);
-                _currentPlaying=video.path;
-                status.recent.Add(video);
-                lvPlayList.Visibility = Visibility.Collapsed;
-                player.Visibility = Visibility.Visible;
-                player.Play();
-            }
-        }
-        private void NextVideo_click(object sender, RoutedEventArgs e)
-        {
-            int t = 0;
-            if (playlist.list.Count() <=1) return;
-            Video video = new Video();
-            foreach (var item in playlist.list)
-                if (item.path == _currentPlaying)
-                    video = item;
-            t = playlist.list.IndexOf(video);
-            if (t < playlist.list.Count() - 1)
-            {
-                video = playlist.list[t+1];
-                player.Source = new Uri(video.path);
-                _currentPlaying = video.path;
-                status.recent.Add(video);
-                lvPlayList.Visibility = Visibility.Collapsed;
-                player.Visibility = Visibility.Visible;
-                player.Play();
-            }
-        }
+        
         private bool isMute = true;
         private double volumnStorage;
 
@@ -361,67 +311,13 @@ namespace WpfApp1
             }
         }
 
-        private void SavePlaylist_Click(object sender, RoutedEventArgs e)
-        {
-            string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
-            var pathPlaylist = $"{exeFolder}Playlists\\";
-            while (playlist.name == "")
-            {
-                var name = Interaction.InputBox("Name invalid!\nYou should rename for Playlist!\nCancle to exit.", "Notification", "name");
-                if (name != "")
-                    playlist.name = name;
-                return;
-            }
-            while (File.Exists($"{pathPlaylist}{playlist.name}.json"))
-            {
-                var result=MessageBox.Show("Playlist existed!\nDo you want to repalce it?","Notificatin",MessageBoxButton.YesNo);
-                if (result == MessageBoxResult.Yes)
-                {
-                    break;
-                }
-                return;
-            }
-            Directory.CreateDirectory(pathPlaylist);
-            status.currentPlaying = _currentPlaying;
-            status.volume = sliderVolumn.Value;
-            status.position = progressSlider.Value;
-            status.PlaylistDirection = $"{pathPlaylist}{playlist.name}.json";
-            string json = JsonSerializer.Serialize(playlist);
-            File.WriteAllText(status.PlaylistDirection, json);
-            string preload = JsonSerializer.Serialize(status);
-            var path = $"{exeFolder}Preload.json";
-            File.WriteAllText(path, preload);
-        }
-
-        private void OpenPlaylist_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Json files (*.json) | *.json";
-            string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
-            var path = $"{exeFolder}Playlists\\";
-            Directory.CreateDirectory(path);
-            openFileDialog.InitialDirectory = path;
-            if (openFileDialog.ShowDialog() == true)
-            {
-                using (StreamReader r = new StreamReader(openFileDialog.FileName))
-                {
-                    string json = r.ReadToEnd();
-                    playlist = JsonSerializer.Deserialize<Playlist>(json);
-                    lvPlayList.ItemsSource = playlist.list;
-                    NameList.Text = playlist.name;
-                    NamePlaylistCurrent.Visibility = Visibility.Visible;
-                }
-                
-            }
-        }
-
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             if(playlist.list.Count()!=0||playlist.name!="")
             {
                 var result = MessageBox.Show("Do you want to save? ", "Notification", MessageBoxButton.YesNo);
                 if (MessageBoxResult.No==result) return;
-                this.SavePlaylist_Click(sender, null);
+                //this.SavePlaylist_Click(sender, null);
             }    
         }
 
@@ -465,12 +361,14 @@ namespace WpfApp1
             } else {
                 _isFullScreen = true;
                 menu.Visibility = Visibility.Collapsed;
-                controller.Visibility = Visibility.Collapsed;
+                //controller.Visibility = Visibility.Collapsed;
                 this.WindowStyle = WindowStyle.None;
                 windowState = this.WindowState;
                 this.WindowState = WindowState.Minimized;
                 this.WindowState = WindowState.Maximized;
-                ToggleVideo(null, null);
+                // Toggle Video
+                lvPlayList.Visibility = Visibility.Collapsed;
+                player.Visibility = Visibility.Visible;
             }
         }
 
@@ -490,6 +388,120 @@ namespace WpfApp1
                 MuteBtn.Visibility = Visibility.Visible;
                 SoundBtn.Visibility = Visibility.Collapsed;
                 isMute = true;
+            }
+        }
+
+        private void NewPlaylist_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = playlist.name == "";
+        }
+
+        private void NewPlaylist_Executed(object sender, ExecutedRoutedEventArgs e) {
+            var name = Interaction.InputBox("Name your playlist.\nCancel to exit.", "Notification", "name");
+            if (name == "") return;
+            playlist.name = name;
+            mediaName.Text = name;
+        }
+
+        private void AddToPlaylist_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = playlist.name != "";
+        }
+
+        private void AddToPlaylist_Executed(object sender, ExecutedRoutedEventArgs e) {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Media Files|*.mp3;*.mp4|Video Files|*.mp4|Audio Files|*.mp3";
+            openFileDialog.DefaultExt = ".mp3;.mp4"; // Default file extension
+            openFileDialog.Multiselect = true;
+            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (openFileDialog.ShowDialog() == true)
+                foreach (string filename in openFileDialog.FileNames)
+                    addToPlaylist(filename);
+        }
+
+        private void SavePlaylist_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = playlist.name != "";
+        }
+
+        private void SavePlaylist_Executed(object sender, ExecutedRoutedEventArgs e) {
+            string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
+            var pathPlaylist = $"{exeFolder}Playlists\\";
+            
+            Directory.CreateDirectory(pathPlaylist);
+            status.currentPlaying = _currentPlaying;
+            status.volume = sliderVolumn.Value;
+            status.position = progressSlider.Value;
+            status.PlaylistDirection = $"{pathPlaylist}{playlist.name}.json";
+            string json = JsonSerializer.Serialize(playlist);
+            File.WriteAllText(status.PlaylistDirection, json);
+            string preload = JsonSerializer.Serialize(status);
+            var path = $"{exeFolder}Preload.json";
+            File.WriteAllText(path, preload);
+        }
+
+        private void OpenPlaylist_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = true;
+        }
+
+        private void OpenPlaylist_Executed(object sender, ExecutedRoutedEventArgs e) {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Json files (*.json) | *.json";
+            string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
+            var path = $"{exeFolder}Playlists\\";
+            Directory.CreateDirectory(path);
+            openFileDialog.InitialDirectory = path;
+            if (openFileDialog.ShowDialog() == true) {
+                using (StreamReader r = new StreamReader(openFileDialog.FileName)) {
+                    string json = r.ReadToEnd();
+                    playlist = JsonSerializer.Deserialize<Playlist>(json);
+                    lvPlayList.ItemsSource = playlist.list;
+                    NameList.Text = playlist.name;
+                    NamePlaylistCurrent.Visibility = Visibility.Visible;
+                }
+            }
+        }
+
+        private void Next_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = playlist.name != "";
+        }
+
+        private void Next_Executed(object sender, ExecutedRoutedEventArgs e) {
+            int t = 0;
+            if (playlist.list.Count() <= 1) return;
+            Video video = new Video();
+            foreach (var item in playlist.list)
+                if (item.path == _currentPlaying)
+                    video = item;
+            t = playlist.list.IndexOf(video);
+            if (t < playlist.list.Count() - 1) {
+                video = playlist.list[t + 1];
+                player.Source = new Uri(video.path);
+                _currentPlaying = video.path;
+                status.recent.Add(video);
+                lvPlayList.Visibility = Visibility.Collapsed;
+                player.Visibility = Visibility.Visible;
+                player.Play();
+            }
+        }
+
+        private void Previous_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = playlist.name != "";
+        }
+
+        private void Previous_Executed(object sender, ExecutedRoutedEventArgs e) {
+            int t = 0;
+            if (playlist.list.Count() <= 1) return;
+            Video video = new Video();
+            foreach (var item in playlist.list)
+                if (item.path == _currentPlaying)
+                    video = item;
+            t = playlist.list.IndexOf(video);
+            if (t >= 1) {
+                video = playlist.list[t - 1];
+                player.Source = new Uri(video.path);
+                _currentPlaying = video.path;
+                status.recent.Add(video);
+                lvPlayList.Visibility = Visibility.Collapsed;
+                player.Visibility = Visibility.Visible;
+                player.Play();
             }
         }
     }
@@ -534,6 +546,54 @@ namespace WpfApp1
             new InputGestureCollection() {
                 new KeyGesture(Key.F11),
                 new KeyGesture(Key.Escape)
+            }
+        );
+        public static readonly RoutedUICommand NewPlaylist = new RoutedUICommand(
+            "NewPlaylist",
+            "NewPlaylist",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.N, ModifierKeys.Control)
+            }
+        );
+        public static readonly RoutedUICommand OpenPlaylist = new RoutedUICommand(
+            "OpenPlaylist",
+            "OpenPlaylist",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.O, ModifierKeys.Control | ModifierKeys.Shift)
+            }
+        );
+        public static readonly RoutedUICommand AddToPlaylist = new RoutedUICommand(
+            "AddToPlaylist",
+            "AddToPlaylist",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.A, ModifierKeys.Control)
+            }
+        );
+        public static readonly RoutedUICommand SavePlaylist = new RoutedUICommand(
+            "SavePlaylist",
+            "SavePlaylist",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.S, ModifierKeys.Control)
+            }
+        );
+        public static readonly RoutedUICommand Next = new RoutedUICommand(
+            "Next",
+            "Next",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.Right, ModifierKeys.Control)
+            }
+        );
+        public static readonly RoutedUICommand Previous = new RoutedUICommand(
+            "Previous",
+            "Previous",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.Left, ModifierKeys.Control)
             }
         );
     }
