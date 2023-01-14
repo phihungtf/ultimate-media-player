@@ -179,7 +179,7 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <MediaElement Volume="0" Name="player" LoadedBehavior="Manual" MediaOpened="player_MediaOpened" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <MediaElement Volume="50" Name="player" LoadedBehavior="Manual" MediaOpened="player_MediaOpened" Visibility="Hidden" HorizontalAlignment="Center" VerticalAlignment="Center" ScrubbingEnabled="True" />
     </DockPanel>
 
 </Window>

@@ -60,7 +60,7 @@ namespace WpfApp1
 
             DispatcherTimer _timer;
             _timer = new DispatcherTimer();
-            _timer.Interval = new TimeSpan(0, 0, 0, 1, 0); ;
+            _timer.Interval = new TimeSpan(0, 0, 0, 0, 1);
             _timer.Tick += _timer_Tick;
 
             _timer.Start();
@@ -103,8 +103,8 @@ namespace WpfApp1
             if ((player.Source != null) && (player.NaturalDuration.HasTimeSpan) && (!userIsDraggingSlider)) {
                 // cập nhật value của slider
                 progressSlider.Minimum = 0;
-                progressSlider.Maximum = player.NaturalDuration.TimeSpan.TotalSeconds;
-                progressSlider.Value = player.Position.TotalSeconds;
+                progressSlider.Maximum = player.NaturalDuration.TimeSpan.TotalMilliseconds;
+                progressSlider.Value = player.Position.TotalMilliseconds;
             }
         }
         
@@ -180,17 +180,23 @@ namespace WpfApp1
 
         private void progressSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) {
             double value = progressSlider.Value;
-            TimeSpan newPosition = TimeSpan.FromSeconds(value);
+            TimeSpan newPosition = TimeSpan.FromMilliseconds(value);
             currentPosition.Text = TimeSpan2String(newPosition);
+
+            if (userIsDraggingSlider) {
+                player.Position = TimeSpan.FromMilliseconds(progressSlider.Value);
+            }
         }
 
         private void progressSlider_DragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e) {
             userIsDraggingSlider = true;
+            player.Pause();
         }
 
         private void progressSlider_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e) {
             userIsDraggingSlider = false;
-            player.Position = TimeSpan.FromSeconds(progressSlider.Value);
+            player.Position = TimeSpan.FromMilliseconds(progressSlider.Value);
+            player.Play();
         }
 
         private void Open_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
