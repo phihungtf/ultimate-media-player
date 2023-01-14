@@ -18,9 +18,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using Microsoft.VisualBasic;
 using Microsoft.Win32;
 //using Newtonsoft.Json;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace WpfApp1
 {
@@ -28,7 +28,7 @@ namespace WpfApp1
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     /// 
-    public class Video
+    public class Video: INotifyPropertyChanged
     {
         public String path { get; set; } = "";
         public String title
@@ -40,6 +40,8 @@ namespace WpfApp1
             }
         }
         public String duration { get; set; } = "";
+
+        public event PropertyChangedEventHandler? PropertyChanged;
     }
 
     public class Playlist: INotifyPropertyChanged
@@ -49,10 +51,22 @@ namespace WpfApp1
 
         public event PropertyChangedEventHandler? PropertyChanged;
     }
+
+    public class Status: INotifyPropertyChanged
+    {
+        public double position { get; set; } = 0;
+        public double volume { get; set; } = 0;
+        public String currentPlaying { get; set; } = "";
+        public String PlaylistDirection { get; set; } = "";
+
+        public BindingList<Video> recent { get; set; }= new BindingList<Video>();
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+    }
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        public BindingList<Video> videoList { get; set; }= new BindingList<Video>();
         public Playlist playlist { get; set; }= new Playlist();
+        public Status status { get; set; } = new Status();
 
         public MainWindow()
         {
@@ -89,7 +103,7 @@ namespace WpfApp1
                 player.Visibility = Visibility.Collapsed;
             }
         }
-        
+        String curent = "";
         string _currentPlaying = "";
         bool _isFullScreen = false;
         private bool _isMediaOpened = false;
@@ -116,6 +130,7 @@ namespace WpfApp1
             double temp = (Main.ActualWidth - 440) / 2;
             mid_controller.Margin = new Thickness(temp-20, 0, temp-100, 0);
             title_column.Width = Main.ActualWidth - 200;
+            //lvMenuitem.Width = menulist.ActualWidth;
         }
         
         private void AddFileToPlaylist(object sender, RoutedEventArgs e)
@@ -198,6 +213,8 @@ namespace WpfApp1
             if (openMediaDialog.ShowDialog() == true) {
                 _currentPlaying = openMediaDialog.FileName;
                 player.Source = new Uri(_currentPlaying, UriKind.Absolute);
+                Video video = new Video() { path = _currentPlaying};
+                status.recent.Add(video);
                 lvPlayList.Visibility = Visibility.Collapsed;
                 player.Visibility = Visibility.Visible;
 
@@ -262,7 +279,8 @@ namespace WpfApp1
         {
             if (lvPlayList.SelectedItem == null)  return;
             Video video = (Video)lvPlayList.SelectedItem;
-            _currentPlaying = video.title;
+            _currentPlaying = video.path;
+            status.recent.Add(video);
             _isMediaOpened = true;
             player.Source = new Uri(video.path);
             lvPlayList.Visibility = Visibility.Collapsed;
@@ -278,7 +296,8 @@ namespace WpfApp1
             int t = random.Next(0,playlist.list.Count());
             Video video = playlist.list[t];
             player.Source = new Uri(video.path);
-            _currentPlaying = video.title;
+            _currentPlaying = video.path;
+            status.recent.Add(video);
             lvPlayList.Visibility = Visibility.Collapsed;
             player.Visibility = Visibility.Visible;
             player.Play();
@@ -290,13 +309,14 @@ namespace WpfApp1
             if(playlist.list.Count()<=1) return ;
             Video video = new Video();
             foreach (var item in playlist.list)
-                if (item.title == _currentPlaying)
+                if (item.path == _currentPlaying)
                     video = item;
             t = playlist.list.IndexOf(video);
             if(t>=1)
             {   video = playlist.list[t-1];
                 player.Source = new Uri(video.path);
-                _currentPlaying=video.title;
+                _currentPlaying=video.path;
+                status.recent.Add(video);
                 lvPlayList.Visibility = Visibility.Collapsed;
                 player.Visibility = Visibility.Visible;
                 player.Play();
@@ -308,14 +328,15 @@ namespace WpfApp1
             if (playlist.list.Count() <=1) return;
             Video video = new Video();
             foreach (var item in playlist.list)
-                if (item.title == _currentPlaying)
+                if (item.path == _currentPlaying)
                     video = item;
             t = playlist.list.IndexOf(video);
             if (t < playlist.list.Count() - 1)
             {
                 video = playlist.list[t+1];
                 player.Source = new Uri(video.path);
-                _currentPlaying = video.title;
+                _currentPlaying = video.path;
+                status.recent.Add(video);
                 lvPlayList.Visibility = Visibility.Collapsed;
                 player.Visibility = Visibility.Visible;
                 player.Play();
@@ -342,38 +363,92 @@ namespace WpfApp1
 
         private void SavePlaylist_Click(object sender, RoutedEventArgs e)
         {
-            SaveFileDialog saveFile = new SaveFileDialog();
-            saveFile.DefaultExt = "json";
-            saveFile.Filter = "Playlist Files|*.json";
-            if (saveFile.ShowDialog() == true)
+            string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
+            var pathPlaylist = $"{exeFolder}Playlists\\";
+            while (playlist.name == "")
             {
-                string json = JsonSerializer.Serialize(playlist);
-                File.WriteAllText(saveFile.FileName, json);
+                var name = Interaction.InputBox("Name invalid!\nYou should rename for Playlist!\nCancle to exit.", "Notification", "name");
+                if (name != "")
+                    playlist.name = name;
+                return;
             }
+            while (File.Exists($"{pathPlaylist}{playlist.name}.json"))
+            {
+                var result=MessageBox.Show("Playlist existed!\nDo you want to repalce it?","Notificatin",MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
+                {
+                    break;
+                }
+                return;
+            }
+            Directory.CreateDirectory(pathPlaylist);
+            status.currentPlaying = _currentPlaying;
+            status.volume = sliderVolumn.Value;
+            status.position = progressSlider.Value;
+            status.PlaylistDirection = $"{pathPlaylist}{playlist.name}.json";
+            string json = JsonSerializer.Serialize(playlist);
+            File.WriteAllText(status.PlaylistDirection, json);
+            string preload = JsonSerializer.Serialize(status);
+            var path = $"{exeFolder}Preload.json";
+            File.WriteAllText(path, preload);
         }
 
         private void OpenPlaylist_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Json files (*.json) | *.json";
-            //openFileDialog.Multiselect = true;
-            openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
+            var path = $"{exeFolder}Playlists\\";
+            Directory.CreateDirectory(path);
+            openFileDialog.InitialDirectory = path;
             if (openFileDialog.ShowDialog() == true)
             {
-
                 using (StreamReader r = new StreamReader(openFileDialog.FileName))
                 {
                     string json = r.ReadToEnd();
                     playlist = JsonSerializer.Deserialize<Playlist>(json);
                     lvPlayList.ItemsSource = playlist.list;
-                    NameList.Text=playlist.name;
+                    NameList.Text = playlist.name;
                     NamePlaylistCurrent.Visibility = Visibility.Visible;
                 }
+                
+            }
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            if(playlist.list.Count()!=0||playlist.name!="")
+            {
+                var result = MessageBox.Show("Do you want to save? ", "Notification", MessageBoxButton.YesNo);
+                if (MessageBoxResult.No==result) return;
+                this.SavePlaylist_Click(sender, null);
             }    
         }
 
-        private void FullScreen_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
-            e.CanExecute = mediaPlayerIsPlaying;
+        private void Main_Loaded(object sender, RoutedEventArgs e)
+        {
+            string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
+            if(File.Exists($"{exeFolder}Preload.json"))
+            using (StreamReader r = new StreamReader($"{exeFolder}Preload.json"))
+            {
+                string json = r.ReadToEnd();
+                status = JsonSerializer.Deserialize<Status>(json);
+                if (status.currentPlaying != "") player.Source = new Uri(status.currentPlaying, UriKind.Absolute);
+                sliderVolumn.Value = status.volume;
+                progressSlider.Value = status.position;
+                lvMenuitem.ItemsSource = status.recent;
+            }
+            else
+            {
+                string preload = JsonSerializer.Serialize(status);
+                var path = $"{exeFolder}Preload.json";
+                File.WriteAllText(path, preload);
+            }
+        }
+
+        private void Erase_RecentVideo(object sender, RoutedEventArgs e)
+        {
+            status.recent.Clear();
         }
 
         private void FullScreen_Executed(object sender, ExecutedRoutedEventArgs e) {
