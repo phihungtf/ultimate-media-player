@@ -182,7 +182,6 @@ namespace WpfApp1
             double value = progressSlider.Value;
             TimeSpan newPosition = TimeSpan.FromSeconds(value);
             currentPosition.Text = TimeSpan2String(newPosition);
-            player.Position = newPosition;
         }
 
         private void progressSlider_DragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e) {
