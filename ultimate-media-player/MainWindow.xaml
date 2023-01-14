@@ -30,7 +30,7 @@
                 <MenuItem Header="Save Playlist..." Click="SavePlaylist_Click"/>
                 <Separator />
                 <MenuItem Header="Open Recent Media" Name="menulist" >
-                    <ListView Name="lvMenuitem">
+                    <ListView x:Name="lvMenuitem">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <MenuItem Header="{Binding title}"/>

@@ -451,6 +451,10 @@ namespace WpfApp1
             status.recent.Clear();
         }
 
+        private void FullScreen_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = mediaPlayerIsPlaying;
+        }
+
         private void FullScreen_Executed(object sender, ExecutedRoutedEventArgs e) {
             if (_isFullScreen) {
                 _isFullScreen = false;
