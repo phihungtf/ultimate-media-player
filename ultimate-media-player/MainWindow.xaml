@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
+        Closing="Window_Closing"
         Title="Ultimate Media Player" Height="500" Width="800" MinWidth="700" Background="Black">
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_CanExecute" Executed="Open_Executed" />
@@ -12,7 +13,7 @@
         <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
         <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
     </Window.CommandBindings>
-    <DockPanel x:Name="Main" SizeChanged="Main_SizeChanged" Background="Black">
+    <DockPanel x:Name="Main" SizeChanged="Main_SizeChanged" Loaded="Main_Loaded" Background="Black">
         <!--Top Menu-->
         <Menu DockPanel.Dock="top">
             <MenuItem Header="_File">
@@ -26,9 +27,14 @@
                 <MenuItem Header="Open Playlist..." Click="OpenPlaylist_Click"/>
                 <MenuItem Header="Save Playlist..." Click="SavePlaylist_Click"/>
                 <Separator />
-                <MenuItem Header="Open Recent Media">
-                    <MenuItem Header="123.mp3" />
-                    <MenuItem Header="abc.mp4" />
+                <MenuItem Header="Open Recent Media" Name="menulist" >
+                    <ListView Name="lvMenuitem">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <MenuItem Header="{Binding title}"/>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
                     <Separator />
                     <MenuItem Header="Clear" />
                 </MenuItem>
