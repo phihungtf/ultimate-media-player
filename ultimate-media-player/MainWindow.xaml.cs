@@ -76,7 +76,7 @@ namespace WpfApp1
             return timeSpan.ToString(@"hh\:mm\:ss");
         }
         
-        private void ToggleVideo(object sender, RoutedEventArgs e)
+        private void ToggleVideo(object? sender, RoutedEventArgs? e)
         {
             if (lvPlayList.Visibility == Visibility.Visible)
             {
@@ -94,8 +94,9 @@ namespace WpfApp1
         bool _isFullScreen = false;
         private bool _isMediaOpened = false;
         private bool mediaPlayerIsPlaying = false;
-        private bool mediaPlayerIsPausing = true;
+        private bool mediaPlayerIsPausing = false;
         private bool userIsDraggingSlider = false;
+        WindowState windowState;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -105,22 +106,6 @@ namespace WpfApp1
                 progressSlider.Minimum = 0;
                 progressSlider.Maximum = player.NaturalDuration.TimeSpan.TotalMilliseconds;
                 progressSlider.Value = player.Position.TotalMilliseconds;
-            }
-        }
-        
-        private void FullScreen(object sender, RoutedEventArgs e)
-        {
-            if (_isFullScreen)
-            {
-                _isFullScreen = false;
-                this.WindowState = WindowState.Normal;
-            }
-            else
-            {
-                _isFullScreen = true;
-                Main.Children.Remove(player);
-                this.Content = player;
-                this.WindowState = WindowState.Maximized;
             }
         }
         
@@ -176,6 +161,7 @@ namespace WpfApp1
         private void player_MediaOpened(object sender, RoutedEventArgs e) {
             _isMediaOpened = true;
             durationLabel.Text = TimeSpan2String(player.NaturalDuration.TimeSpan);
+            sliderVolumn.Value = player.Volume;
         }
 
         private void progressSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) {
@@ -224,7 +210,7 @@ namespace WpfApp1
         }
 
         private void Play_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
-            e.CanExecute = (player != null) && (player.Source != null);
+            e.CanExecute = (player != null) && (player.Source != null) && mediaPlayerIsPausing;
         }
 
         private void Play_Executed(object sender, ExecutedRoutedEventArgs e) {
@@ -232,17 +218,19 @@ namespace WpfApp1
             playButton.Visibility = Visibility.Collapsed;
             pauseButton.Visibility = Visibility.Visible;
             mediaPlayerIsPlaying = true;
+            mediaPlayerIsPausing = false;
         }
 
 
         private void Pause_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
-            e.CanExecute = mediaPlayerIsPlaying;
+            e.CanExecute = mediaPlayerIsPlaying && !mediaPlayerIsPausing;
         }
 
         private void Pause_Executed(object sender, ExecutedRoutedEventArgs e) {
             player.Pause();
             playButton.Visibility = Visibility.Visible;
             pauseButton.Visibility = Visibility.Collapsed;
+            mediaPlayerIsPausing = true;
         }
 
         private void Stop_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
@@ -352,25 +340,6 @@ namespace WpfApp1
             }
         }
 
-        private void Handle_volumn(object sender, RoutedEventArgs e)
-        {
-            if(isMute)
-            {
-                sliderVolumn.Value = volumnStorage;
-                MuteBtn.Visibility = Visibility.Collapsed;
-                SoundBtn.Visibility = Visibility.Visible;
-                isMute = false;
-            }
-            else
-            {
-                volumnStorage = sliderVolumn.Value;
-                sliderVolumn.Value = 0;
-                MuteBtn.Visibility = Visibility.Visible;
-                SoundBtn.Visibility = Visibility.Collapsed;
-                isMute = true;
-            }
-        }
-
         private void SavePlaylist_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFile = new SaveFileDialog();
@@ -402,5 +371,91 @@ namespace WpfApp1
                 }
             }    
         }
+
+        private void FullScreen_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = mediaPlayerIsPlaying;
+        }
+
+        private void FullScreen_Executed(object sender, ExecutedRoutedEventArgs e) {
+            if (_isFullScreen) {
+                _isFullScreen = false;
+                menu.Visibility = Visibility.Visible;
+                controller.Visibility = Visibility.Visible;
+                this.WindowStyle = WindowStyle.SingleBorderWindow;
+                this.WindowState = windowState;
+            } else {
+                _isFullScreen = true;
+                menu.Visibility = Visibility.Collapsed;
+                controller.Visibility = Visibility.Collapsed;
+                this.WindowStyle = WindowStyle.None;
+                windowState = this.WindowState;
+                this.WindowState = WindowState.Minimized;
+                this.WindowState = WindowState.Maximized;
+                ToggleVideo(null, null);
+            }
+        }
+
+        private void MuteVolume_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = mediaPlayerIsPlaying;
+        }
+
+        private void MuteVolume_Executed(object sender, ExecutedRoutedEventArgs e) {
+            if (isMute) {
+                sliderVolumn.Value = volumnStorage;
+                MuteBtn.Visibility = Visibility.Collapsed;
+                SoundBtn.Visibility = Visibility.Visible;
+                isMute = false;
+            } else {
+                volumnStorage = sliderVolumn.Value;
+                sliderVolumn.Value = 0;
+                MuteBtn.Visibility = Visibility.Visible;
+                SoundBtn.Visibility = Visibility.Collapsed;
+                isMute = true;
+            }
+        }
+    }
+
+    public static class CustomCommands {
+        public static readonly RoutedUICommand Play = new RoutedUICommand(
+            "Play",
+            "Play",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.Space)
+            }
+        );
+        public static readonly RoutedUICommand Pause = new RoutedUICommand(
+            "Pause",
+            "Pause",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.Space)
+            }
+        );
+        public static readonly RoutedUICommand Stop = new RoutedUICommand(
+            "Stop",
+            "Stop",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.S, ModifierKeys.Alt)
+            }
+        );
+        public static readonly RoutedUICommand MuteVolume = new RoutedUICommand(
+            "MuteVolume",
+            "MuteVolume",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.M, ModifierKeys.Control)
+            }
+        );
+        public static readonly RoutedUICommand FullScreen = new RoutedUICommand (
+            "FullScreen",
+            "FullScreen",
+            typeof(CustomCommands),
+            new InputGestureCollection() {
+                new KeyGesture(Key.F11),
+                new KeyGesture(Key.Escape)
+            }
+        );
     }
 }
