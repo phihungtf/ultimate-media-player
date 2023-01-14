@@ -24,6 +24,7 @@ using Microsoft.VisualBasic;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using Microsoft.WindowsAPICodePack.Shell;
+using static Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties.System;
 //using Newtonsoft.Json;
 
 namespace WpfApp1
@@ -63,7 +64,7 @@ namespace WpfApp1
         public String currentPlaying { get; set; } = "";
         public String PlaylistDirection { get; set; } = "";
 
-        public BindingList<Video> recent { get; set; }= new BindingList<Video>();
+        public BindingList<Video> recent { get; set; } = new BindingList<Video>();
 
         public event PropertyChangedEventHandler? PropertyChanged;
     }
@@ -115,6 +116,8 @@ namespace WpfApp1
                 player.Visibility = Visibility.Collapsed;
             }
         }
+        
+        Random random = new Random();
         String curent = "";
         string _currentPlaying = "";
         bool _isFullScreen = false;
@@ -122,6 +125,8 @@ namespace WpfApp1
         private bool mediaPlayerIsPlaying = false;
         private bool mediaPlayerIsPausing = false;
         private bool userIsDraggingSlider = false;
+        private bool isRandom = false;
+        private bool isLoop = false;
         WindowState windowState;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -237,7 +242,6 @@ namespace WpfApp1
             mediaPlayerIsPausing = false;
         }
 
-
         private void Pause_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
             e.CanExecute = mediaPlayerIsPlaying && !mediaPlayerIsPausing;
         }
@@ -276,20 +280,6 @@ namespace WpfApp1
             pauseButton.Visibility = Visibility.Visible;
             mediaPlayerIsPlaying = true;
             mediaPlayerIsPausing = false;
-        }
-
-        private void shuffleMode_Click(object sender, RoutedEventArgs e)
-        {
-            if(playlist.list.Count()==0) return;
-            Random random = new Random();
-            int t = random.Next(0,playlist.list.Count());
-            Video video = playlist.list[t];
-            player.Source = new Uri(video.path);
-            _currentPlaying = video.path;
-            status.recent.Add(video);
-            lvPlayList.Visibility = Visibility.Collapsed;
-            player.Visibility = Visibility.Visible;
-            player.Play();
         }
         
         private bool isMute = true;
@@ -459,26 +449,59 @@ namespace WpfApp1
             }
         }
 
-        private void Next_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
-            e.CanExecute = playlist.name != "";
-        }
-
-        private void Next_Executed(object sender, ExecutedRoutedEventArgs e) {
+        private void Next() {
             int t = 0;
             if (playlist.list.Count() <= 1) return;
             Video video = new Video();
             foreach (var item in playlist.list)
                 if (item.path == _currentPlaying)
                     video = item;
-            t = playlist.list.IndexOf(video);
-            if (t < playlist.list.Count() - 1) {
-                video = playlist.list[t + 1];
+            t = playlist.list.IndexOf(video) + 1;
+            if (isRandom) t = random.Next(0, playlist.list.Count());
+            if (t < playlist.list.Count()) {
+                video = playlist.list[t];
                 player.Source = new Uri(video.path);
                 _currentPlaying = video.path;
                 status.recent.Add(video);
                 lvPlayList.Visibility = Visibility.Collapsed;
                 player.Visibility = Visibility.Visible;
                 player.Play();
+                playButton.Visibility = Visibility.Collapsed;
+                pauseButton.Visibility = Visibility.Visible;
+                mediaName.Text = video.title.Length <= 30 ? video.title : (video.title.Substring(0, 30) + "...");
+                mediaPlayerIsPlaying = true;
+            }
+        }
+
+        private void Next_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = playlist.name != "";
+        }
+
+        private void Next_Executed(object sender, ExecutedRoutedEventArgs e) {
+            Next();
+        }
+
+        private void Previous() {
+            int t = 0;
+            if (playlist.list.Count() <= 1) return;
+            Video video = new Video();
+            foreach (var item in playlist.list)
+                if (item.path == _currentPlaying)
+                    video = item;
+            t = playlist.list.IndexOf(video) - 1;
+            if (isRandom) t = random.Next(0, playlist.list.Count());
+            if (t >= 0) {
+                video = playlist.list[t];
+                player.Source = new Uri(video.path);
+                _currentPlaying = video.path;
+                status.recent.Add(video);
+                lvPlayList.Visibility = Visibility.Collapsed;
+                player.Visibility = Visibility.Visible;
+                player.Play();
+                playButton.Visibility = Visibility.Collapsed;
+                pauseButton.Visibility = Visibility.Visible;
+                mediaName.Text = video.title.Length <= 30 ? video.title : (video.title.Substring(0, 30) + "...");
+                mediaPlayerIsPlaying = true;
             }
         }
 
@@ -487,22 +510,35 @@ namespace WpfApp1
         }
 
         private void Previous_Executed(object sender, ExecutedRoutedEventArgs e) {
-            int t = 0;
-            if (playlist.list.Count() <= 1) return;
-            Video video = new Video();
-            foreach (var item in playlist.list)
-                if (item.path == _currentPlaying)
-                    video = item;
-            t = playlist.list.IndexOf(video);
-            if (t >= 1) {
-                video = playlist.list[t - 1];
-                player.Source = new Uri(video.path);
-                _currentPlaying = video.path;
-                status.recent.Add(video);
-                lvPlayList.Visibility = Visibility.Collapsed;
-                player.Visibility = Visibility.Visible;
+            Previous();
+        }
+
+        private void Random_Checked(object sender, RoutedEventArgs e) {
+            isRandom = true;
+        }
+
+        private void Random_Unchecked(object sender, RoutedEventArgs e) {
+            isRandom = false;
+        }
+
+        private void player_MediaEnded(object sender, RoutedEventArgs e) {
+            if (isLoop) {
+                player.Position = TimeSpan.FromMilliseconds(0);
                 player.Play();
+                playButton.Visibility = Visibility.Collapsed;
+                pauseButton.Visibility = Visibility.Visible;
+                mediaPlayerIsPlaying = true;
+                return;
             }
+            Next();
+        }
+
+        private void Loop_Checked(object sender, RoutedEventArgs e) {
+            isLoop = true;
+        }
+
+        private void Loop_Unchecked(object sender, RoutedEventArgs e) {
+            isLoop = false;
         }
     }
 
