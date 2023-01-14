@@ -28,7 +28,7 @@ namespace WpfApp1
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     /// 
-    public class Video
+    public class Video: INotifyPropertyChanged
     {
         public String path { get; set; } = "";
         public String title
@@ -40,6 +40,8 @@ namespace WpfApp1
             }
         }
         public String duration { get; set; } = "";
+
+        public event PropertyChangedEventHandler? PropertyChanged;
     }
 
     public class Playlist: INotifyPropertyChanged
@@ -50,7 +52,7 @@ namespace WpfApp1
         public event PropertyChangedEventHandler? PropertyChanged;
     }
 
-    public class Status:INotifyPropertyChanged
+    public class Status: INotifyPropertyChanged
     {
         public double position { get; set; } = 0;
         public double volume { get; set; } = 0;
@@ -63,7 +65,6 @@ namespace WpfApp1
     }
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
-        public BindingList<Video> videoList { get; set; }= new BindingList<Video>();
         public Playlist playlist { get; set; }= new Playlist();
         public Status status { get; set; } = new Status();
 
@@ -225,6 +226,8 @@ namespace WpfApp1
             if (openMediaDialog.ShowDialog() == true) {
                 _currentPlaying = openMediaDialog.FileName;
                 player.Source = new Uri(_currentPlaying, UriKind.Absolute);
+                Video video = new Video() { path = _currentPlaying};
+                status.recent.Add(video);
                 lvPlayList.Visibility = Visibility.Collapsed;
                 player.Visibility = Visibility.Visible;
 
@@ -455,6 +458,7 @@ namespace WpfApp1
         private void Main_Loaded(object sender, RoutedEventArgs e)
         {
             string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
+            if(File.Exists($"{exeFolder}Preload.json"))
             using (StreamReader r = new StreamReader($"{exeFolder}Preload.json"))
             {
                 string json = r.ReadToEnd();
@@ -464,6 +468,17 @@ namespace WpfApp1
                 progressSlider.Value = status.position;
                 lvMenuitem.ItemsSource = status.recent;
             }
+            else
+            {
+                string preload = JsonSerializer.Serialize(status);
+                var path = $"{exeFolder}Preload.json";
+                File.WriteAllText(path, preload);
+            }
+        }
+
+        private void Erase_RecentVideo(object sender, RoutedEventArgs e)
+        {
+            status.recent.Clear();
         }
     }
 }

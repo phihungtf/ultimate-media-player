@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
         Closing="Window_Closing"
-        Title="Ultimate Media Player" Height="500" Width="800" MinWidth="700" Background="Black">
+        Title="Ultimate Media Player" Height="500" Width="800" Loaded="Main_Loaded" MinWidth="700" Background="Black">
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_CanExecute" Executed="Open_Executed" />
         <CommandBinding Command="MediaCommands.Play" CanExecute="Play_CanExecute" Executed="Play_Executed" />
@@ -36,7 +36,7 @@
                         </ListView.ItemTemplate>
                     </ListView>
                     <Separator />
-                    <MenuItem Header="Clear" />
+                    <MenuItem Header="Clear" Click="Erase_RecentVideo" />
                 </MenuItem>
                 <MenuItem Header="Exit" />
             </MenuItem>
