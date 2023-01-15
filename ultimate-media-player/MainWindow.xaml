@@ -100,7 +100,7 @@
                 <MenuItem Header="Help"/>
                 <MenuItem Header="Check for Updates..."/>
                 <Separator />
-                <MenuItem Header="About"/>
+                <MenuItem Header="About" Click="MenuItem_Click"/>
             </MenuItem>
         </Menu>
 

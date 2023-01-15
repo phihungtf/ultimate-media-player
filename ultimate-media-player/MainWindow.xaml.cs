@@ -544,6 +544,10 @@ namespace WpfApp1
         private void Loop_Unchecked(object sender, RoutedEventArgs e) {
             isLoop = false;
         }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e) {
+            MessageBox.Show("Thành viên nhóm:\n- 20120474: Lê Kim Hiếu\n- 20120488: Thái Nguyễn Việt Hùng\n- 20120489: Võ Phi Hùng\n- 20120496: Nguyễn Cảnh Huy", "About");
+        }
     }
 
     public static class CustomCommands {
