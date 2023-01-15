@@ -307,7 +307,7 @@ namespace WpfApp1
             {
                 var result = MessageBox.Show("Do you want to save? ", "Notification", MessageBoxButton.YesNo);
                 if (MessageBoxResult.No==result) return;
-                //this.SavePlaylist_Click(sender, null);
+                SavePlaylist();
             }    
         }
 
@@ -407,14 +407,10 @@ namespace WpfApp1
                     addToPlaylist(filename);
         }
 
-        private void SavePlaylist_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
-            e.CanExecute = playlist.name != "";
-        }
-
-        private void SavePlaylist_Executed(object sender, ExecutedRoutedEventArgs e) {
+        private void SavePlaylist() {
             string exeFolder = AppDomain.CurrentDomain.BaseDirectory;
             var pathPlaylist = $"{exeFolder}Playlists\\";
-            
+
             Directory.CreateDirectory(pathPlaylist);
             status.currentPlaying = _currentPlaying;
             status.volume = sliderVolumn.Value;
@@ -425,6 +421,14 @@ namespace WpfApp1
             string preload = JsonSerializer.Serialize(status);
             var path = $"{exeFolder}Preload.json";
             File.WriteAllText(path, preload);
+        }
+
+        private void SavePlaylist_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = playlist.name != "";
+        }
+
+        private void SavePlaylist_Executed(object sender, ExecutedRoutedEventArgs e) {
+            SavePlaylist();
         }
 
         private void OpenPlaylist_CanExecute(object sender, CanExecuteRoutedEventArgs e) {
